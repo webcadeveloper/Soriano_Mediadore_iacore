@@ -67,6 +67,11 @@ export class RecobrosComponent implements OnInit, OnDestroy {
   motivoFilter = 'ALL';
   selected: string[] = [];
 
+  // Filtros para Bandeja
+  queryBandeja = '';
+  ramoFilterBandeja = '';
+  situacionFilterBandeja = '';
+
   // CSV paste
   pastedCsv = '';
 
@@ -91,6 +96,8 @@ export class RecobrosComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    console.log('🚀 [RECOBROS] ngOnInit - Inicializando componente...');
+
     this.recobrosService.recibos$
       .pipe(takeUntil(this.destroy$))
       .subscribe(recibos => {
@@ -98,6 +105,7 @@ export class RecobrosComponent implements OnInit, OnDestroy {
           .filter(r => !r.deleted)
           .map(r => ({ ...r, _score: this.recobrosService.calcularScore(r) }))
           .sort((a, b) => (b._score || 0) - (a._score || 0));
+        console.log(`📋 [RECOBROS] Recibos locales cargados: ${this.recibos.length}`);
       });
 
     this.recobrosService.templates$
@@ -107,11 +115,15 @@ export class RecobrosComponent implements OnInit, OnDestroy {
         if (!this.templateSeleccionado && templates.length > 0) {
           this.templateSeleccionado = templates[0].id;
         }
+        console.log(`📝 [RECOBROS] Templates cargadas: ${templates.length}`);
       });
 
     this.recobrosService.config$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(config => this.config = config);
+      .subscribe(config => {
+        this.config = config;
+        console.log('⚙️ [RECOBROS] Config cargada:', config);
+      });
 
     this.emailTemplateService.templates$
       .pipe(takeUntil(this.destroy$))
@@ -121,36 +133,54 @@ export class RecobrosComponent implements OnInit, OnDestroy {
           this.emailTemplateSeleccionado = templates[0].id;
           this.actualizarPreview();
         }
+        console.log(`📧 [RECOBROS] Email templates cargadas: ${templates.length}`);
       });
 
     // Cargar KPIs reales de la base de datos
+    console.log('📊 [RECOBROS] Llamando a loadKPIs() desde ngOnInit...');
     this.loadKPIs();
   }
 
   // ===== CARGAR KPIs DE LA BASE DE DATOS =====
   loadKPIs(): void {
+    console.log('🔄 [RECOBROS] Iniciando carga de KPIs...');
     this.loadingKPIs = true;
 
     // Cargar estadísticas generales
+    console.log('📊 [RECOBROS] Llamando a getStatsGeneral()...');
     this.apiService.getStatsGeneral().subscribe({
       next: (response) => {
         this.statsGeneral = response.data;
-        console.log('Stats General:', this.statsGeneral);
+        console.log('✅ [RECOBROS] Stats General cargadas:', this.statsGeneral);
+        console.log('   - Total clientes:', this.statsGeneral?.total_clientes);
+        console.log('   - Total recibos:', this.statsGeneral?.total_recibos);
+        console.log('   - Recibos devueltos:', this.statsGeneral?.recibos_devueltos);
+        console.log('   - Deuda total:', this.statsGeneral?.deuda_total);
       },
       error: (err) => {
-        console.error('Error cargando stats general:', err);
+        console.error('❌ [RECOBROS] Error cargando stats general:', err);
       }
     });
 
     // Cargar KPIs de recibos CON FILTRO DE RETORNADOS y límite de 200
+    console.log('📊 [RECOBROS] Llamando a getRecibosKPI({ situacion: "Retornado", limite: 200 })...');
     this.apiService.getRecibosKPI({ situacion: 'Retornado', limite: 200 }).subscribe({
       next: (response) => {
         this.recibosKPI = response.data;
         this.loadingKPIs = false;
-        console.log(`Cargados ${this.recibosKPI.recibos?.length || 0} recibos retornados con email/teléfono`);
+        console.log('✅ [RECOBROS] Recibos KPI cargados:', this.recibosKPI);
+        console.log('   - Total recibos:', this.recibosKPI?.total_recibos);
+        console.log('   - Total cobrados:', this.recibosKPI?.total_cobrados);
+        console.log('   - Total pendientes:', this.recibosKPI?.total_pendientes);
+        console.log('   - Total anulados:', this.recibosKPI?.total_anulados);
+        console.log('   - Total retornados:', this.recibosKPI?.total_retornados);
+        console.log('   - Importe cobrado:', this.recibosKPI?.importe_cobrado);
+        console.log('   - Importe retornado:', this.recibosKPI?.importe_retornado);
+        console.log('   - Array recibos length:', this.recibosKPI?.recibos?.length);
+        console.log('🏁 [RECOBROS] loadingKPIs = false');
       },
       error: (err) => {
-        console.error('Error cargando recibos KPI:', err);
+        console.error('❌ [RECOBROS] Error cargando recibos KPI:', err);
         this.loadingKPIs = false;
         this.snackBar.open('Error cargando KPIs de la base de datos', 'Cerrar', { duration: 3000 });
       }
@@ -164,7 +194,20 @@ export class RecobrosComponent implements OnInit, OnDestroy {
 
   // ===== NAVEGACIÓN =====
   cambiarSeccion(seccion: SeccionRecobros): void {
+    console.log(`🔀 [RECOBROS] Cambiando sección de "${this.seccionActual}" a "${seccion}"`);
     this.seccionActual = seccion;
+
+    if (seccion === 'analitica') {
+      console.log('📊 [RECOBROS] Entrando a sección ANALÍTICA');
+      console.log('   - loadingKPIs:', this.loadingKPIs);
+      console.log('   - statsGeneral:', this.statsGeneral);
+      console.log('   - recibosKPI:', this.recibosKPI);
+
+      if (!this.statsGeneral || !this.recibosKPI) {
+        console.warn('⚠️ [RECOBROS] Faltan datos! Recargando KPIs...');
+        this.loadKPIs();
+      }
+    }
   }
 
   // ===== FILTROS =====
@@ -187,6 +230,51 @@ export class RecobrosComponent implements OnInit, OnDestroy {
       );
     }
 
+    return filtrados;
+  }
+
+  // Getter para Bandeja - Filtra recibos de la base de datos
+  get recibosBandejaFiltrados(): any[] {
+    console.log('🔍 [RECOBROS] Filtrando recibos de Bandeja...');
+
+    if (!this.recibosKPI || !this.recibosKPI.recibos) {
+      console.warn('⚠️ [RECOBROS] No hay recibos KPI disponibles');
+      return [];
+    }
+
+    let filtrados = [...this.recibosKPI.recibos];
+    console.log(`   - Recibos iniciales: ${filtrados.length}`);
+
+    // Filtrar por Ramo
+    if (this.ramoFilterBandeja.trim()) {
+      filtrados = filtrados.filter(r => r.ramo === this.ramoFilterBandeja);
+      console.log(`   - Después de filtro Ramo "${this.ramoFilterBandeja}": ${filtrados.length}`);
+    }
+
+    // Filtrar por Situación
+    if (this.situacionFilterBandeja.trim()) {
+      filtrados = filtrados.filter(r => r.situacion === this.situacionFilterBandeja);
+      console.log(`   - Después de filtro Situación "${this.situacionFilterBandeja}": ${filtrados.length}`);
+    }
+
+    // Búsqueda de texto libre
+    if (this.queryBandeja.trim()) {
+      const q = this.queryBandeja.toLowerCase();
+      filtrados = filtrados.filter(r => {
+        const searchText = [
+          r.recibo,
+          r.nombre_completo,
+          r.nif_cliente,
+          r.poliza,
+          r.ramo,
+          r.situacion
+        ].join(' ').toLowerCase();
+        return searchText.includes(q);
+      });
+      console.log(`   - Después de búsqueda "${this.queryBandeja}": ${filtrados.length}`);
+    }
+
+    console.log(`✅ [RECOBROS] Recibos filtrados finales: ${filtrados.length}`);
     return filtrados;
   }
 

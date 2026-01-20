@@ -40,167 +40,198 @@
 
   <!-- SECCIÓN: INICIO (KPIs) -->
   <div *ngIf="seccionActual === 'inicio'" class="seccion-inicio">
-    <div class="kpis-grid">
-      <mat-card class="kpi-card">
-        <mat-card-header>
-          <mat-card-title>Total casos</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="kpi-value">{{ totalCasos }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="kpi-card">
-        <mat-card-header>
-          <mat-card-title>Devueltos</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="kpi-value">{{ totalDevueltos }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="kpi-card">
-        <mat-card-header>
-          <mat-card-title>Promesas</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="kpi-value">{{ totalPromesas }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="kpi-card">
-        <mat-card-header>
-          <mat-card-title>Recuperados</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="kpi-value">{{ totalRecuperados }}</div>
-        </mat-card-content>
-      </mat-card>
+    <!-- Loading spinner -->
+    <div *ngIf="loadingKPIs" class="loading-container">
+      <mat-icon>hourglass_empty</mat-icon>
+      <p>Cargando KPIs desde la base de datos...</p>
     </div>
 
-    <div class="kpis-grid-secondary">
-      <mat-card class="kpi-card">
-        <mat-card-header>
-          <mat-card-title>Importe total</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="kpi-value-secondary">{{ formatImporte(importeTotal) }}</div>
-        </mat-card-content>
-      </mat-card>
+    <!-- KPIs REALES desde la BD -->
+    <div *ngIf="!loadingKPIs && recibosKPI">
+      <div class="kpis-grid">
+        <mat-card class="kpi-card">
+          <div class="kpi-icon">📄</div>
+          <div class="kpi-value">{{ recibosKPI.total_recibos | number }}</div>
+          <div class="kpi-label">Total Recibos</div>
+        </mat-card>
 
-      <mat-card class="kpi-card">
-        <mat-card-header>
-          <mat-card-title>Ticket medio</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="kpi-value-secondary">{{ formatImporte(ticketMedio) }}</div>
-        </mat-card-content>
-      </mat-card>
+        <mat-card class="kpi-card urgent">
+          <div class="kpi-icon">🔴</div>
+          <div class="kpi-value">{{ recibosKPI.total_retornados | number }}</div>
+          <div class="kpi-label">Retornados</div>
+        </mat-card>
 
-      <mat-card class="kpi-card">
-        <mat-card-header>
-          <mat-card-title>Días medios vencido</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="kpi-value-secondary">{{ diasMedios }}</div>
-        </mat-card-content>
-      </mat-card>
+        <mat-card class="kpi-card success">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-value">{{ recibosKPI.total_cobrados | number }}</div>
+          <div class="kpi-label">Cobrados</div>
+        </mat-card>
+
+        <mat-card class="kpi-card warning">
+          <div class="kpi-icon">⏳</div>
+          <div class="kpi-value">{{ recibosKPI.total_pendientes | number }}</div>
+          <div class="kpi-label">Pendientes</div>
+        </mat-card>
+      </div>
+
+      <div class="kpis-grid-secondary">
+        <mat-card class="kpi-card">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-value-secondary">{{ recibosKPI.importe_retornado | number:'1.2-2' }}€</div>
+          <div class="kpi-label">Deuda Retornados</div>
+        </mat-card>
+
+        <mat-card class="kpi-card">
+          <div class="kpi-icon">💵</div>
+          <div class="kpi-value-secondary">{{ recibosKPI.total_importe | number:'1.2-2' }}€</div>
+          <div class="kpi-label">Importe Total</div>
+        </mat-card>
+
+        <mat-card class="kpi-card">
+          <div class="kpi-icon">📊</div>
+          <div class="kpi-value-secondary">
+            {{ recibosKPI.total_recibos > 0 ? ((recibosKPI.total_retornados / recibosKPI.total_recibos) * 100 | number:'1.1-1') : 0 }}%
+          </div>
+          <div class="kpi-label">Tasa Retorno</div>
+        </mat-card>
+      </div>
+
+      <!-- Última actualización -->
+      <div style="text-align: center; margin-top: 16px; color: #7f8c8d; font-size: 0.875rem;">
+        Datos actualizados en tiempo real desde la base de datos
+      </div>
     </div>
   </div>
 
   <!-- SECCIÓN: BANDEJA -->
   <div *ngIf="seccionActual === 'bandeja'" class="seccion-bandeja">
-    <!-- Filtros -->
-    <div class="filtros-grid">
-      <mat-form-field appearance="outline">
-        <mat-label>Buscar</mat-label>
-        <input matInput placeholder="Cliente, NIF, póliza, recibo..." [(ngModel)]="query">
-        <mat-icon matPrefix>search</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Estado</mat-label>
-        <mat-select [(ngModel)]="estadoFilter">
-          <mat-option value="TODOS">Todos</mat-option>
-          <mat-option value="DEVUELTO">Devuelto</mat-option>
-          <mat-option value="EN_GESTION">En gestión</mat-option>
-          <mat-option value="PENDIENTE">Pendiente</mat-option>
-          <mat-option value="RECUPERADO">Recuperado</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Motivo</mat-label>
-        <mat-select [(ngModel)]="motivoFilter">
-          <mat-option value="ALL">Todos</mat-option>
-          <mat-option value="fondos">Fondos insuficientes</mat-option>
-          <mat-option value="cuenta">Cuenta/orden incorrecta</mat-option>
-          <mat-option value="revocación">Revocación</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <button mat-raised-button color="primary" (click)="cambiarSeccion('carga')">
-        <mat-icon>add</mat-icon>
-        Importar
-      </button>
+    <!-- Loading spinner -->
+    <div *ngIf="loadingKPIs" class="loading-container">
+      <mat-icon>hourglass_empty</mat-icon>
+      <p>Cargando recibos retornados desde la base de datos...</p>
     </div>
 
-    <!-- Tabla -->
-    <mat-card class="tabla-card">
-      <div class="tabla-container">
-        <table mat-table [dataSource]="recibosFiltrados" class="recibos-table">
+    <!-- Contenido de Bandeja -->
+    <div *ngIf="!loadingKPIs && recibosKPI">
+      <!-- Header con contador -->
+      <div class="bandeja-header">
+        <h2>📬 Bandeja de Recibos Retornados</h2>
+        <div class="bandeja-stats">
+          <mat-chip class="chip-retornados">
+            <strong>{{ recibosKPI.total_retornados | number }}</strong> casos requieren atención
+          </mat-chip>
+          <button mat-icon-button matTooltip="Recargar datos" (click)="loadKPIs()">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Buscar</mat-label>
+          <input matInput placeholder="Cliente, NIF, póliza, recibo..." [(ngModel)]="queryBandeja">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ramo</mat-label>
+          <mat-select [(ngModel)]="ramoFilterBandeja">
+            <mat-option value="">Todos</mat-option>
+            <mat-option value="Autos">Autos</mat-option>
+            <mat-option value="Hogar">Hogar</mat-option>
+            <mat-option value="Salud">Salud</mat-option>
+            <mat-option value="Vida">Vida</mat-option>
+            <mat-option value="Rama Jama">Rama Jama (Demo)</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Situación</mat-label>
+          <mat-select [(ngModel)]="situacionFilterBandeja">
+            <mat-option value="">Todas</mat-option>
+            <mat-option value="Retornado">Retornado</mat-option>
+            <mat-option value="Cobrado">Cobrado</mat-option>
+            <mat-option value="Pendiente">Pendiente</mat-option>
+            <mat-option value="Anulado">Anulado</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="cambiarSeccion('carga')">
+          <mat-icon>add</mat-icon>
+          Importar
+        </button>
+      </div>
+
+      <!-- Tabla -->
+      <mat-card class="tabla-card">
+        <div class="tabla-container">
+          <table mat-table [dataSource]="recibosBandejaFiltrados" class="recibos-table">
           <!-- Checkbox Column -->
           <ng-container matColumnDef="select">
             <th mat-header-cell *matHeaderCellDef>
               <mat-checkbox
-                [checked]="selected.length === recibosFiltrados.length && recibosFiltrados.length > 0"
-                [indeterminate]="selected.length > 0 && selected.length < recibosFiltrados.length"
+                [checked]="selected.length === recibosBandejaFiltrados.length && recibosBandejaFiltrados.length > 0"
+                [indeterminate]="selected.length > 0 && selected.length < recibosBandejaFiltrados.length"
                 (change)="selectAll()">
               </mat-checkbox>
             </th>
             <td mat-cell *matCellDef="let row">
               <mat-checkbox
-                [checked]="selected.includes(row.id)"
-                (change)="toggleSelection(row.id)">
+                [checked]="selected.includes(row.recibo_id)"
+                (change)="toggleSelection(row.recibo_id)">
               </mat-checkbox>
             </td>
+          </ng-container>
+
+          <!-- Recibo Column -->
+          <ng-container matColumnDef="recibo">
+            <th mat-header-cell *matHeaderCellDef>Recibo</th>
+            <td mat-cell *matCellDef="let row">{{ row.recibo }}</td>
           </ng-container>
 
           <!-- Cliente Column -->
           <ng-container matColumnDef="cliente">
             <th mat-header-cell *matHeaderCellDef>Cliente</th>
-            <td mat-cell *matCellDef="let row">{{ row.cliente }}</td>
+            <td mat-cell *matCellDef="let row">{{ row.nombre_completo }}</td>
+          </ng-container>
+
+          <!-- Ramo Column -->
+          <ng-container matColumnDef="ramo">
+            <th mat-header-cell *matHeaderCellDef>Ramo</th>
+            <td mat-cell *matCellDef="let row">{{ row.ramo }}</td>
           </ng-container>
 
           <!-- Importe Column -->
           <ng-container matColumnDef="importe">
             <th mat-header-cell *matHeaderCellDef>Importe</th>
-            <td mat-cell *matCellDef="let row" class="importe-cell">{{ formatImporte(row.importe) }}</td>
+            <td mat-cell *matCellDef="let row" class="importe-cell">{{ row.importe | number:'1.2-2' }}€</td>
           </ng-container>
 
           <!-- Vencimiento Column -->
-          <ng-container matColumnDef="venc">
-            <th mat-header-cell *matHeaderCellDef>Venc</th>
-            <td mat-cell *matCellDef="let row">{{ formatFecha(row.venc) }}</td>
+          <ng-container matColumnDef="vencimiento">
+            <th mat-header-cell *matHeaderCellDef>Vencimiento</th>
+            <td mat-cell *matCellDef="let row">{{ row.vencimiento | date:'dd/MM/yyyy' }}</td>
           </ng-container>
 
-          <!-- Días Column -->
-          <ng-container matColumnDef="dias">
-            <th mat-header-cell *matHeaderCellDef>Días</th>
-            <td mat-cell *matCellDef="let row">{{ diasDesde(row.venc) }}</td>
+          <!-- Días Vencido Column -->
+          <ng-container matColumnDef="dias_vencido">
+            <th mat-header-cell *matHeaderCellDef>Días Vencido</th>
+            <td mat-cell *matCellDef="let row" [class.dias-critico]="row.dias_vencido > 30">
+              {{ row.dias_vencido }} días
+            </td>
           </ng-container>
 
-          <!-- Motivo Column -->
-          <ng-container matColumnDef="motivo">
-            <th mat-header-cell *matHeaderCellDef>Motivo</th>
-            <td mat-cell *matCellDef="let row">{{ row.motivo }}</td>
-          </ng-container>
-
-          <!-- Estado Column -->
-          <ng-container matColumnDef="estado">
-            <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <!-- Situación Column -->
+          <ng-container matColumnDef="situacion">
+            <th mat-header-cell *matHeaderCellDef>Situación</th>
             <td mat-cell *matCellDef="let row">
-              <mat-chip>{{ row.estado }}</mat-chip>
+              <mat-chip [class.chip-retornado]="row.situacion === 'Retornado'"
+                        [class.chip-cobrado]="row.situacion === 'Cobrado'"
+                        [class.chip-pendiente]="row.situacion === 'Pendiente'"
+                        [class.chip-anulado]="row.situacion === 'Anulado'">
+                {{ row.situacion }}
+              </mat-chip>
             </td>
           </ng-container>
 
@@ -217,20 +248,21 @@
             </td>
           </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="['select', 'cliente', 'importe', 'venc', 'dias', 'motivo', 'estado', 'actions']"></tr>
-          <tr mat-row *matRowDef="let row; columns: ['select', 'cliente', 'importe', 'venc', 'dias', 'motivo', 'estado', 'actions']"></tr>
+          <tr mat-header-row *matHeaderRowDef="['select', 'recibo', 'cliente', 'ramo', 'importe', 'vencimiento', 'dias_vencido', 'situacion', 'actions']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['select', 'recibo', 'cliente', 'ramo', 'importe', 'vencimiento', 'dias_vencido', 'situacion', 'actions']"></tr>
         </table>
       </div>
     </mat-card>
 
-    <!-- Acciones masivas -->
-    <div *ngIf="selected.length > 0" class="acciones-masivas">
-      <span>{{ selected.length }} seleccionados</span>
-      <button mat-raised-button color="primary" (click)="enviarEmailsSeleccionados()">
-        <mat-icon>email</mat-icon>
-        Enviar emails
-      </button>
-      <button mat-button (click)="clearSelection()">Limpiar selección</button>
+      <!-- Acciones masivas -->
+      <div *ngIf="selected.length > 0" class="acciones-masivas">
+        <span>{{ selected.length }} seleccionados</span>
+        <button mat-raised-button color="primary" (click)="enviarEmailsSeleccionados()">
+          <mat-icon>email</mat-icon>
+          Enviar emails
+        </button>
+        <button mat-button (click)="clearSelection()">Limpiar selección</button>
+      </div>
     </div>
   </div>
 
@@ -508,7 +540,7 @@
     </div>
 
     <!-- KPIs DE RECIBOS POR SITUACIÓN -->
-    <div *ngIf="!loadingKPIs && recibosKPI" class="analitica-grid">
+    <div *ngIf="!loadingKPIs && recibosKPI">
       <h2>💼 Distribución de Recibos por Situación</h2>
 
       <div class="recibos-kpi-grid">
