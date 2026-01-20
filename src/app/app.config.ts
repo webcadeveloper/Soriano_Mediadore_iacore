@@ -7,6 +7,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
+import { MockInterceptor } from './core/interceptors/mock.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,7 +20,12 @@ export const appConfig: ApplicationConfig = {
       withInterceptorsFromDi()
     ),
 
-    // Registrar interceptores en orden: primero auth, luego error
+    // Registrar interceptores en orden: primero mock (para desarrollo), luego auth, luego error
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: MockInterceptor,
+      multi: true
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
