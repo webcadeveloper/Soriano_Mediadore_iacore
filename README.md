@@ -41,6 +41,23 @@ Sistema CRM moderno y seguro para la gestión integral de mediadores de seguros,
 - ✅ Contraste WCAG AA+
 - ✅ Animaciones suaves
 
+### PWA (Progressive Web App)
+- ✅ Instalable en dispositivos móviles y desktop
+- ✅ Service Worker para funcionalidad offline
+- ✅ Caché inteligente con estrategias freshness/performance
+- ✅ Actualizaciones automáticas cada 6 horas
+- ✅ Manifest completo con iconos y shortcuts
+- ✅ Theme color integrado (#8b4049)
+- ✅ Apple Touch Icons y Windows tiles
+
+### SEO
+- ✅ Meta tags dinámicos por página
+- ✅ Open Graph y Twitter Cards
+- ✅ Structured data JSON-LD (Organization, WebApplication)
+- ✅ Canonical URLs automáticas
+- ✅ robots.txt y sitemap.xml
+- ✅ Optimización para motores de búsqueda
+
 ## 📦 Tecnologías
 
 - **Framework**: Angular 18.2.21
@@ -49,6 +66,8 @@ Sistema CRM moderno y seguro para la gestión integral de mediadores de seguros,
 - **Testing**: Jasmine + Karma
 - **Build**: Angular CLI + esbuild
 - **Estilos**: SCSS + CSS Variables
+- **PWA**: @angular/service-worker 18.2.14
+- **SEO**: Meta Tags dinámicos + JSON-LD
 
 ## 🛠️ Instalación
 
@@ -208,6 +227,66 @@ npm run test:watch
 - VoiceOver (macOS/iOS)
 - TalkBack (Android)
 
+## 📱 PWA (Progressive Web App)
+
+### Características PWA
+- **Instalación**: La aplicación puede instalarse en dispositivos móviles y desktop
+- **Offline**: Funcionalidad completa sin conexión a internet
+- **Actualizaciones**: Sistema automático de detección y actualización cada 6 horas
+- **Caché**: Estrategias inteligentes para optimizar rendimiento
+
+### Configuración de Caché
+
+**Freshness Strategy** (datos críticos):
+- `/api/auth/**` - Autenticación
+- `/api/users/me` - Usuario actual
+- MaxAge: 5 minutos
+- Timeout: 10 segundos
+
+**Performance Strategy** (datos frecuentes):
+- `/api/clientes/**` - Clientes
+- `/api/recobros/**` - Recobros
+- `/api/reportes/**` - Reportes
+- `/api/bots/**` - Bots AI
+- MaxAge: 1 hora
+- Timeout: 5 segundos
+
+### Service Worker
+El Service Worker se registra automáticamente en producción:
+- Precarga de assets críticos (app shell)
+- Lazy loading de assets secundarios
+- Caché de fuentes de Google Fonts
+- Estrategia de actualización "registerWhenStable"
+
+### Manifest
+- **Nombre**: Soriano Mediadores CRM
+- **Theme Color**: #8b4049 (rojo semioscuro)
+- **Background**: #ffffff (blanco)
+- **Display**: standalone
+- **Iconos**: 72x72 hasta 512x512 (normal y maskable)
+- **Shortcuts**: Dashboard, Clientes, Recobros
+
+## 🔍 SEO
+
+### Meta Tags Dinámicos
+Cada página configura sus propios meta tags mediante `MetaTagsService`:
+- Title personalizado
+- Description específica
+- Keywords relevantes
+- Canonical URL
+- Open Graph tags
+- Twitter Cards
+
+### Structured Data (JSON-LD)
+- **Organization**: Información de la empresa
+- **WebApplication**: Detalles de la aplicación
+- **BreadcrumbList**: Navegación jerárquica (por página)
+
+### Archivos SEO
+- **robots.txt**: Configuración de crawlers (Google, Bing, etc.)
+- **sitemap.xml**: Mapa del sitio con todas las rutas
+- **Canonical URLs**: URLs canónicas en cada página
+
 ## 🚀 Deployment
 
 ### Build de Producción
@@ -215,6 +294,15 @@ npm run test:watch
 ```bash
 npm run build
 # Output en: dist/soriano-mediadores-web/
+# Incluye Service Worker y manifest automáticamente
+```
+
+### PWA en Producción
+El Service Worker solo se activa en builds de producción:
+```bash
+npm run build:prod
+# El Service Worker se registra automáticamente
+# Disponible en /ngsw-worker.js
 ```
 
 ## 📝 Scripts NPM
