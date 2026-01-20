@@ -58,6 +58,14 @@ Sistema CRM moderno y seguro para la gestión integral de mediadores de seguros,
 - ✅ robots.txt y sitemap.xml
 - ✅ Optimización para motores de búsqueda
 
+### Features Avanzadas
+- ✅ Sistema de notificaciones toast y persistentes
+- ✅ Búsqueda global inteligente con historial
+- ✅ Exportación de datos (CSV, JSON, Excel)
+- ✅ Impresión formateada de datos
+- ✅ Gestión de historial de búsquedas
+- ✅ Notificaciones con acciones personalizables
+
 ## 📦 Tecnologías
 
 - **Framework**: Angular 18.2.21
@@ -312,6 +320,92 @@ npm start          # Servidor de desarrollo
 npm run build      # Build de producción
 npm test           # Ejecutar tests
 npm run lint       # Linter
+```
+
+## 🚀 Uso de Servicios
+
+### Sistema de Notificaciones
+
+```typescript
+import { NotificationService } from '@app/core/services';
+
+constructor(private notifications: NotificationService) {}
+
+// Notificaciones toast
+this.notifications.success('Operación exitosa');
+this.notifications.error('Error al procesar');
+this.notifications.warning('Advertencia importante');
+this.notifications.info('Información útil');
+
+// Notificación persistente con acción
+this.notifications.addNotification(
+  'Nuevo recobro',
+  'Se ha detectado un nuevo recobro pendiente',
+  'info',
+  {
+    label: 'Ver',
+    callback: () => this.router.navigate(['/recobros'])
+  }
+);
+
+// Observar notificaciones no leídas
+this.notifications.unreadCount$.subscribe(count => {
+  console.log(`Notificaciones no leídas: ${count}`);
+});
+```
+
+### Búsqueda Global
+
+```typescript
+import { SearchService } from '@app/core/services';
+
+constructor(private search: SearchService) {}
+
+// Búsqueda simple
+this.search.search('Juan').subscribe(results => {
+  console.log('Resultados:', results);
+});
+
+// Búsqueda con debounce (para input en tiempo real)
+const searchQuery$ = new Subject<string>();
+this.search.searchWithDebounce(searchQuery$).subscribe(results => {
+  this.searchResults = results;
+});
+
+// Añadir al historial
+this.search.addToHistory('Juan Pérez');
+
+// Ver historial
+this.search.searchHistory$.subscribe(history => {
+  console.log('Búsquedas recientes:', history);
+});
+```
+
+### Exportación de Datos
+
+```typescript
+import { ExportService } from '@app/core/services';
+
+constructor(private export: ExportService) {}
+
+// Exportar a CSV
+this.export.exportToCSV(this.clientes, {
+  filename: 'clientes_2024.csv',
+  includeHeaders: true
+});
+
+// Exportar a JSON
+this.export.exportToJSON(this.recobros, {
+  filename: 'recobros.json'
+});
+
+// Exportar tabla HTML
+this.export.exportTableToCSV('table-clientes', {
+  filename: 'tabla_clientes.csv'
+});
+
+// Imprimir datos
+this.export.print(this.reportes, 'Reporte de Ventas 2024');
 ```
 
 ## 📄 Licencia
