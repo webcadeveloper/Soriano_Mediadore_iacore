@@ -160,7 +160,7 @@
   <!-- Mobile Card View -->
   <div *ngIf="!loading && clientes.length > 0" class="mobile-cards show-mobile">
     <mat-card
-      *ngFor="let cliente of clientes"
+      *ngFor="let cliente of clientes; trackBy: trackByClienteId"
       class="client-card"
       [routerLink]="['/clientes', cliente.id]">
       <div class="card-header">

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,7 +39,9 @@ import { Cliente } from '../../shared/models/cliente.model';
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss'
 })
-export class ClientesComponent implements OnInit {
+export class ClientesComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   searchQuery = '';
   clientes: Cliente[] = [];
   loading = false;
@@ -52,22 +55,29 @@ export class ClientesComponent implements OnInit {
     this.cargarTodosLosClientes();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarTodosLosClientes(): void {
     this.loading = true;
     this.searched = true;
 
     // Query vacío = obtener todos los clientes
-    this.apiService.buscarClientes('').subscribe({
-      next: (response) => {
-        this.clientes = response.clientes;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error cargando clientes:', err);
-        this.loading = false;
-        this.clientes = [];
-      }
-    });
+    this.apiService.buscarClientes('')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.clientes = response.clientes;
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error cargando clientes:', err);
+          this.loading = false;
+          this.clientes = [];
+        }
+      });
   }
 
   buscar(query?: string): void {
@@ -87,17 +97,19 @@ export class ClientesComponent implements OnInit {
     this.loading = true;
     this.searched = true;
 
-    this.apiService.buscarClientes(searchTerm).subscribe({
-      next: (response) => {
-        this.clientes = response.clientes;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error buscando clientes:', err);
-        this.loading = false;
-        this.clientes = [];
-      }
-    });
+    this.apiService.buscarClientes(searchTerm)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.clientes = response.clientes;
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error buscando clientes:', err);
+          this.loading = false;
+          this.clientes = [];
+        }
+      });
   }
 
   onSearch(): void {
@@ -108,5 +120,10 @@ export class ClientesComponent implements OnInit {
     this.searchQuery = '';
     // Al limpiar, recargar todos los clientes
     this.cargarTodosLosClientes();
+  }
+
+  // TrackBy function for performance optimization
+  trackByClienteId(index: number, cliente: Cliente): string {
+    return cliente.nif || `cliente-${index}`;
   }
 }

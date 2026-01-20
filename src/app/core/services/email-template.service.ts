@@ -3,6 +3,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { EmailTemplate, PLANTILLAS_EMAIL_PREDEFINIDAS, EMAIL_BASE_TEMPLATE, VARIABLES_DISPONIBLES } from '../../shared/models/email-template.model';
 import { Recibo } from '../../shared/models/recibo.model';
 import { ConfigRecobros } from '../../shared/models/recibo.model';
+import { SecureStorageService } from './secure-storage.service';
+import { SecurityService } from './security.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,20 +15,17 @@ export class EmailTemplateService {
 
   public templates$: Observable<EmailTemplate[]> = this.templatesSubject.asObservable();
 
-  constructor() {
+  constructor(
+    private secureStorage: SecureStorageService,
+    private securityService: SecurityService
+  ) {
     this.loadTemplates();
   }
 
   private loadTemplates(): void {
-    const stored = localStorage.getItem(this.STORAGE_KEY);
+    const stored = this.secureStorage.getItem<EmailTemplate[]>(this.STORAGE_KEY);
     if (stored) {
-      try {
-        const templates = JSON.parse(stored) as EmailTemplate[];
-        this.templatesSubject.next(templates);
-      } catch (err) {
-        console.error('Error al cargar plantillas de email:', err);
-        this.initializeDefaultTemplates();
-      }
+      this.templatesSubject.next(stored);
     } else {
       this.initializeDefaultTemplates();
     }
@@ -50,7 +49,7 @@ export class EmailTemplateService {
   }
 
   private saveTemplates(templates: EmailTemplate[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(templates));
+    this.secureStorage.setItem(this.STORAGE_KEY, templates);
     this.templatesSubject.next(templates);
   }
 
@@ -167,20 +166,20 @@ export class EmailTemplateService {
       content = content.replace(/{bloquePago}/g, '');
     }
 
-    // Reemplazar variables del recibo
+    // Reemplazar variables del recibo (SANITIZAR para prevenir XSS)
     const replacements: { [key: string]: string } = {
-      '{nombre}': recibo.cliente || 'Cliente',
-      '{nif}': recibo.nif || '',
-      '{poliza}': recibo.poliza || '',
-      '{num_recibo}': recibo.num_recibo || '',
-      '{importe}': this.formatImporte(recibo.importe),
-      '{venc}': this.formatFecha(recibo.venc),
-      '{dias_vencido}': this.diasDesdeVencimiento(recibo.venc).toString(),
-      '{motivo}': recibo.motivo || 'Sin especificar',
-      '{agente}': agente,
-      '{empresa}': 'Soriano Mediadores de Seguros',
-      '{telefono_empresa}': config.telefonoEmpresa || '',
-      '{email_empresa}': config.emailEmpresa || ''
+      '{nombre}': this.securityService.escapeHtml(recibo.cliente || 'Cliente'),
+      '{nif}': this.securityService.escapeHtml(recibo.nif || ''),
+      '{poliza}': this.securityService.escapeHtml(recibo.poliza || ''),
+      '{num_recibo}': this.securityService.escapeHtml(recibo.num_recibo || ''),
+      '{importe}': this.formatImporte(recibo.importe), // Ya es seguro (número)
+      '{venc}': this.formatFecha(recibo.venc), // Ya es seguro (fecha)
+      '{dias_vencido}': this.diasDesdeVencimiento(recibo.venc).toString(), // Número, seguro
+      '{motivo}': this.securityService.escapeHtml(recibo.motivo || 'Sin especificar'),
+      '{agente}': this.securityService.escapeHtml(agente),
+      '{empresa}': this.securityService.escapeHtml('Soriano Mediadores de Seguros'),
+      '{telefono_empresa}': this.securityService.escapeHtml(config.telefonoEmpresa || ''),
+      '{email_empresa}': this.securityService.escapeHtml(config.emailEmpresa || '')
     };
 
     // Aplicar reemplazos
@@ -243,30 +242,26 @@ export class EmailTemplateService {
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 
+  /**
+   * Valida IBAN usando SecurityService
+   */
   private validarIBAN(iban?: string): boolean {
-    if (!iban) return false;
-    const clean = iban.replace(/\s/g, '').toUpperCase();
-    if (!/^[A-Z]{2}\d{22}$/.test(clean)) return false;
-
-    const reordered = clean.slice(4) + clean.slice(0, 4);
-    const numericIban = reordered.replace(/[A-Z]/g, char => (char.charCodeAt(0) - 55).toString());
-
-    let remainder = '';
-    for (let i = 0; i < numericIban.length; i++) {
-      remainder = (parseInt(remainder + numericIban[i]) % 97).toString();
-    }
-
-    return parseInt(remainder) === 1;
+    return this.securityService.validateIBAN(iban);
   }
 
+  /**
+   * Formatea un IBAN con espacios cada 4 caracteres
+   */
   private formatearIBAN(iban: string): string {
     const clean = iban.replace(/\s/g, '');
     return clean.match(/.{1,4}/g)?.join(' ') || iban;
   }
 
+  /**
+   * Verifica que una URL sea HTTPS usando SecurityService
+   */
   private esHttps(url?: string): boolean {
-    if (!url) return false;
-    return url.toLowerCase().startsWith('https://');
+    return this.securityService.isHttps(url);
   }
 
   /**
@@ -277,27 +272,13 @@ export class EmailTemplateService {
   }
 
   /**
-   * Valida que una plantilla HTML contenga las etiquetas básicas necesarias
+   * Valida que una plantilla HTML sea segura usando SecurityService
    */
   validarPlantillaHTML(html: string): { valido: boolean; errores: string[] } {
-    const errores: string[] = [];
-
-    if (!html || html.trim().length === 0) {
-      errores.push('El contenido HTML no puede estar vacío');
-    }
-
-    // Verificar que no contenga scripts maliciosos
-    if (/<script/i.test(html)) {
-      errores.push('No se permiten etiquetas <script> en las plantillas');
-    }
-
-    if (/<iframe/i.test(html)) {
-      errores.push('No se permiten etiquetas <iframe> en las plantillas');
-    }
-
+    const validation = this.securityService.validateHtml(html);
     return {
-      valido: errores.length === 0,
-      errores
+      valido: validation.valid,
+      errores: validation.errors
     };
   }
 }

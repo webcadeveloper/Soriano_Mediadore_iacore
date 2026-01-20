@@ -1,7 +1,7 @@
 // ===== VARIABLES =====
-$primary-color: #c2185b;
-$primary-light: #f48fb1;
-$primary-dark: #880e4f;
+$primary-color: #8b4049;
+$primary-light: #a8545e;
+$primary-dark: #6d323a;
 $sidebar-width: 260px;
 $sidebar-collapsed-width: 64px;
 $toolbar-height: 64px;
@@ -57,7 +57,7 @@ $transition-duration: 0.3s;
 // ===== SIDENAV CONTAINER =====
 .sidenav-container {
   height: calc(100vh - #{$toolbar-height});
-  background-color: #f5f5f5;
+  background-color: #ffffff;
 
   &.mobile {
     .app-sidenav {
@@ -272,6 +272,34 @@ $transition-duration: 0.3s;
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+// ===== USER MENU =====
+::ng-deep .mat-mdc-menu-panel {
+  &.mat-mdc-menu-panel {
+    min-width: 220px;
+  }
+}
+
+.user-menu-header {
+  padding: 16px 16px 12px 16px;
+  background: linear-gradient(135deg, #8b4049 0%, #6d323a 100%);
+  color: white;
+  margin-bottom: 8px;
+
+  .user-name {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .user-role {
+    margin: 0;
+    font-size: 0.75rem;
+    opacity: 0.9;
+    text-transform: capitalize;
   }
 }
 

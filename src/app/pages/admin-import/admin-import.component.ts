@@ -17,6 +17,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ApiService } from '../../core/services/api.service';
+import { LoggerService } from '../../core/services/logger.service';
 import {
   ImportType,
   ImportMode,
@@ -28,7 +29,7 @@ import {
   ImportTypeDescriptions,
   ImportError
 } from '../../shared/models/import.model';
-import { Subscription, interval } from 'rxjs';
+import { Subscription, interval, Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-admin-import',
@@ -56,6 +57,8 @@ import { Subscription, interval } from 'rxjs';
   styleUrl: './admin-import.component.scss'
 })
 export class AdminImportComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   // Enums for template
   ImportType = ImportType;
   ImportMode = ImportMode;
@@ -95,7 +98,8 @@ export class AdminImportComponent implements OnInit, OnDestroy {
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -103,6 +107,8 @@ export class AdminImportComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     if (this.importSubscription) {
       this.importSubscription.unsubscribe();
     }
@@ -196,11 +202,10 @@ export class AdminImportComponent implements OnInit, OnDestroy {
   }
 
   handleFile(file: File): void {
-    console.log('📁 Archivo seleccionado:', file.name, file.size);
+    this.logger.debug('Archivo seleccionado', { fileName: file.name, size: file.size });
 
     // Validate file type
     if (!file.name.endsWith('.csv')) {
-      console.log('❌ Tipo de archivo inválido');
       this.snackBar.open('Por favor, selecciona un archivo CSV válido', 'Cerrar', {
         duration: 3000,
         panelClass: ['error-snackbar']
@@ -211,7 +216,6 @@ export class AdminImportComponent implements OnInit, OnDestroy {
     // Validate file size (max 100MB)
     const maxSize = 100 * 1024 * 1024;
     if (file.size > maxSize) {
-      console.log('❌ Archivo demasiado grande:', file.size);
       this.snackBar.open('El archivo es demasiado grande. Máximo 100MB', 'Cerrar', {
         duration: 3000,
         panelClass: ['error-snackbar']
@@ -219,10 +223,8 @@ export class AdminImportComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('✅ Archivo válido, guardando y cargando preview...');
     this.selectedFile = file;
     this.loadPreview();
-    console.log('📍 Cambiando a paso 3 (Vista Previa)');
     this.currentStep = 3; // Paso 3 = Vista Previa (0=Tipo, 1=Cargar, 2=Config, 3=Preview)
   }
 
@@ -236,74 +238,51 @@ export class AdminImportComponent implements OnInit, OnDestroy {
   loadPreview(): void {
     if (!this.selectedFile) return;
 
-    console.log('📤 [V2] Cargando preview...', {
-      fileName: this.selectedFile.name,
-      fileSize: this.selectedFile.size,
-      fileSizeMB: (this.selectedFile.size / 1024 / 1024).toFixed(2) + ' MB',
-      type: this.importConfig.type
-    });
-
     this.isLoadingPreview = true;
     const formData = new FormData();
     formData.append('file', this.selectedFile);
 
-    console.log('🌐 [V2] Enviando petición a /api/admin/import/preview...');
-    console.log('FormData contenido:', {
-      hasFile: formData.has('file')
-    });
+    this.apiService.previewCSV(formData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.csvPreview = response.data;
 
-    this.apiService.previewCSV(formData).subscribe({
-      next: (response) => {
-        console.log('✅ Respuesta recibida:', response);
-        if (response.success) {
-          this.csvPreview = response.data;
-
-          // Validar columnas del CSV contra las esperadas
-          if (this.csvPreview && this.csvPreview.headers) {
-            console.log('🔍 Validando columnas del CSV...', {
-              headers: this.csvPreview.headers,
-              required: this.getRequiredColumns()
-            });
-            const isValid = this.validateCSVColumns(this.csvPreview.headers);
-            console.log('✅ Resultado de validación:', isValid);
-            if (!isValid) {
-              // Si no es válido, limpiar archivo
-              console.log('❌ Archivo inválido - columnas no coinciden');
-              this.selectedFile = null;
-              this.csvPreview = null;
-              this.currentStep = 1; // Volver al paso de carga
-              this.isLoadingPreview = false;
-              return;
+            // Validar columnas del CSV contra las esperadas
+            if (this.csvPreview && this.csvPreview.headers) {
+              const isValid = this.validateCSVColumns(this.csvPreview.headers);
+              if (!isValid) {
+                // Si no es válido, limpiar archivo
+                this.selectedFile = null;
+                this.csvPreview = null;
+                this.currentStep = 1; // Volver al paso de carga
+                this.isLoadingPreview = false;
+                return;
+              }
             }
-          }
 
-          console.log('🎉 Mostrando mensaje de éxito...');
-          this.snackBar.open(`✅ Archivo validado correctamente para ${ImportTypeDescriptions[this.importConfig.type].title}`, 'Cerrar', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          console.log('✅ Proceso completado. currentStep:', this.currentStep, 'csvPreview:', !!this.csvPreview);
-        } else {
-          console.log('⚠️ Respuesta con error:', response.message);
-          this.snackBar.open(response.message || 'Error al cargar la vista previa', 'Cerrar', {
-            duration: 3000,
+            this.snackBar.open(`✅ Archivo validado correctamente para ${ImportTypeDescriptions[this.importConfig.type].title}`, 'Cerrar', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+          } else {
+            this.snackBar.open(response.message || 'Error al cargar la vista previa', 'Cerrar', {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
+          }
+          this.isLoadingPreview = false;
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar vista previa del archivo', error);
+          this.snackBar.open(`Error al cargar la vista previa del archivo`, 'Cerrar', {
+            duration: 5000,
             panelClass: ['error-snackbar']
           });
+          this.isLoadingPreview = false;
         }
-        this.isLoadingPreview = false;
-      },
-      error: (error) => {
-        console.error('❌ Error loading preview:', error);
-        console.error('Error status:', error.status);
-        console.error('Error message:', error.message);
-        console.error('Error details:', error.error);
-        this.snackBar.open(`Error al cargar la vista previa del archivo: ${error.status} ${error.message}`, 'Cerrar', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
-        this.isLoadingPreview = false;
-      }
-    });
+      });
   }
 
   // ===== IMPORT =====
@@ -332,107 +311,128 @@ export class AdminImportComponent implements OnInit, OnDestroy {
     formData.append('file', this.selectedFile);
     formData.append('config', JSON.stringify(this.importConfig));
 
-    this.apiService.startImport(this.importConfig.type, formData).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.currentImport = response.data;
-          this.pollImportStatus(response.data.id);
-          this.snackBar.open('Importación iniciada', 'Cerrar', {
-            duration: 2000
-          });
-        } else {
-          this.snackBar.open(response.message || 'Error al iniciar la importación', 'Cerrar', {
-            duration: 3000,
-            panelClass: ['error-snackbar']
-          });
-          this.isImporting = false;
-        }
-      },
-      error: (error) => {
-        console.error('Error starting import:', error);
-        this.snackBar.open('Error al iniciar la importación', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
-        this.isImporting = false;
-      }
-    });
-  }
-
-  pollImportStatus(importId: string): void {
-    // Poll every 1 second
-    this.importSubscription = interval(1000).subscribe(() => {
-      this.apiService.getImportStatus(importId).subscribe({
+    this.apiService.startImport(this.importConfig.type, formData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
         next: (response) => {
           if (response.success) {
             this.currentImport = response.data;
-
-            if (
-              response.data.status === ImportStatus.COMPLETED ||
-              response.data.status === ImportStatus.ERROR ||
-              response.data.status === ImportStatus.CANCELLED
-            ) {
-              this.importSubscription?.unsubscribe();
-              this.isImporting = false;
-              this.currentStep = 4;
-              this.loadHistory();
-
-              if (response.data.status === ImportStatus.COMPLETED) {
-                this.snackBar.open('Importación completada exitosamente', 'Cerrar', {
-                  duration: 3000,
-                  panelClass: ['success-snackbar']
-                });
-              }
-            }
-          }
-        },
-        error: (error) => {
-          console.error('Error polling import status:', error);
-          this.importSubscription?.unsubscribe();
-          this.isImporting = false;
-        }
-      });
-    });
-  }
-
-  cancelImport(): void {
-    if (this.currentImport) {
-      this.apiService.cancelImport(this.currentImport.id).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.snackBar.open('Importación cancelada', 'Cerrar', {
+            this.pollImportStatus(response.data.id);
+            this.snackBar.open('Importación iniciada', 'Cerrar', {
               duration: 2000
             });
-            this.importSubscription?.unsubscribe();
+          } else {
+            this.snackBar.open(response.message || 'Error al iniciar la importación', 'Cerrar', {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
             this.isImporting = false;
           }
         },
         error: (error) => {
-          console.error('Error canceling import:', error);
-          this.snackBar.open('Error al cancelar la importación', 'Cerrar', {
+          this.logger.error('Error al iniciar importación', error);
+          this.snackBar.open('Error al iniciar la importación', 'Cerrar', {
             duration: 3000,
             panelClass: ['error-snackbar']
           });
+          this.isImporting = false;
         }
       });
+  }
+
+  pollImportStatus(importId: string): void {
+    // Exponential backoff: start at 1s, increase by 1.5x each time, max 30s
+    let pollInterval = 1000;
+    const maxInterval = 30000;
+    let pollCount = 0;
+
+    const doPoll = () => {
+      this.apiService.getImportStatus(importId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.currentImport = response.data;
+
+              if (
+                response.data.status === ImportStatus.COMPLETED ||
+                response.data.status === ImportStatus.ERROR ||
+                response.data.status === ImportStatus.CANCELLED
+              ) {
+                this.importSubscription?.unsubscribe();
+                this.isImporting = false;
+                this.currentStep = 4;
+                this.loadHistory();
+
+                if (response.data.status === ImportStatus.COMPLETED) {
+                  this.snackBar.open('Importación completada exitosamente', 'Cerrar', {
+                    duration: 3000,
+                    panelClass: ['success-snackbar']
+                  });
+                }
+              } else {
+                // Continue polling with exponential backoff
+                pollCount++;
+                if (pollCount > 5) {
+                  pollInterval = Math.min(pollInterval * 1.5, maxInterval);
+                }
+                setTimeout(() => doPoll(), pollInterval);
+              }
+            }
+          },
+          error: (error) => {
+            this.logger.error('Error al consultar estado de importación', error);
+            this.importSubscription?.unsubscribe();
+            this.isImporting = false;
+          }
+        });
+    };
+
+    doPoll();
+  }
+
+  cancelImport(): void {
+    if (this.currentImport) {
+      this.apiService.cancelImport(this.currentImport.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.snackBar.open('Importación cancelada', 'Cerrar', {
+                duration: 2000
+              });
+              this.importSubscription?.unsubscribe();
+              this.isImporting = false;
+            }
+          },
+          error: (error) => {
+            this.logger.error('Error al cancelar importación', error);
+            this.snackBar.open('Error al cancelar la importación', 'Cerrar', {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
+          }
+        });
     }
   }
 
   // ===== HISTORY =====
   loadHistory(): void {
     this.isLoadingHistory = true;
-    this.apiService.getImportHistory().subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.importHistory = response.data;
+    this.apiService.getImportHistory()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.importHistory = response.data;
+          }
+          this.isLoadingHistory = false;
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar historial de importaciones', error);
+          this.isLoadingHistory = false;
         }
-        this.isLoadingHistory = false;
-      },
-      error: (error) => {
-        console.error('Error loading history:', error);
-        this.isLoadingHistory = false;
-      }
-    });
+      });
   }
 
   downloadErrorReport(importId: string): void {
@@ -463,29 +463,31 @@ export class AdminImportComponent implements OnInit, OnDestroy {
 
   revertImport(importId: string): void {
     // Confirmation dialog would go here
-    this.apiService.revertImport(importId).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.snackBar.open(response.message, 'Cerrar', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          this.loadHistory();
-        } else {
-          this.snackBar.open(response.message, 'Cerrar', {
+    this.apiService.revertImport(importId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.snackBar.open(response.message, 'Cerrar', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+            this.loadHistory();
+          } else {
+            this.snackBar.open(response.message, 'Cerrar', {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
+          }
+        },
+        error: (error) => {
+          this.logger.error('Error al revertir importación', error);
+          this.snackBar.open('Error al revertir la importación', 'Cerrar', {
             duration: 3000,
             panelClass: ['error-snackbar']
           });
         }
-      },
-      error: (error) => {
-        console.error('Error reverting import:', error);
-        this.snackBar.open('Error al revertir la importación', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
-      }
-    });
+      });
   }
 
   // ===== UTILITIES =====
@@ -542,7 +544,6 @@ export class AdminImportComponent implements OnInit, OnDestroy {
 
   processPastedCsv(): void {
     // TODO: Implementar procesamiento de CSV pegado
-    console.log('Procesando CSV pegado:', this.pastedCsv);
     this.snackBar.open('Función de CSV pegado en desarrollo', 'Cerrar', { duration: 3000 });
   }
 }

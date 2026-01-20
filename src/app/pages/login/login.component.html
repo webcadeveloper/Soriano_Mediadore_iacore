@@ -1,0 +1,96 @@
+<div class="login-container">
+  <div class="login-card-wrapper">
+    <mat-card class="login-card" role="main" aria-labelledby="login-title">
+      <!-- Logo y título -->
+      <div class="login-header">
+        <mat-icon class="login-logo" aria-hidden="true">security</mat-icon>
+        <h1 id="login-title" class="login-title">Soriano Mediadores</h1>
+        <p class="login-subtitle">Sistema CRM</p>
+      </div>
+
+      <!-- Formulario -->
+      <form
+        class="login-form"
+        (ngSubmit)="onSubmit()"
+        #loginForm="ngForm"
+        aria-label="Formulario de inicio de sesión">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Usuario</mat-label>
+          <input
+            #usernameInput
+            matInput
+            type="text"
+            [(ngModel)]="username"
+            name="username"
+            placeholder="Ingrese su usuario"
+            required
+            [disabled]="loading"
+            autocomplete="username"
+            aria-required="true"
+            aria-label="Nombre de usuario">
+          <mat-icon matPrefix aria-hidden="true">person</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            [type]="hidePassword ? 'password' : 'text'"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Ingrese su contraseña"
+            required
+            [disabled]="loading"
+            autocomplete="current-password"
+            aria-required="true"
+            aria-label="Contraseña">
+          <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+            [attr.aria-pressed]="!hidePassword"
+            [disabled]="loading">
+            <mat-icon aria-hidden="true">{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="login-button"
+          [disabled]="loading || !loginForm.valid"
+          [attr.aria-busy]="loading"
+          aria-label="Iniciar sesión">
+          <mat-spinner diameter="20" *ngIf="loading" aria-label="Cargando"></mat-spinner>
+          <span *ngIf="!loading">Iniciar Sesión</span>
+        </button>
+      </form>
+
+      <!-- Credenciales de demo -->
+      <div class="demo-credentials" role="complementary" aria-label="Credenciales de demostración">
+        <p class="demo-title">Credenciales de demostración:</p>
+        <div class="demo-users">
+          <div class="demo-user">
+            <strong>Admin:</strong> admin / admin123
+          </div>
+          <div class="demo-user">
+            <strong>Agente:</strong> agente / agente123
+          </div>
+          <div class="demo-user">
+            <strong>Supervisor:</strong> supervisor / supervisor123
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Footer -->
+    <div class="login-footer" role="contentinfo">
+      <p>&copy; {{ currentYear }} Soriano Mediadores de Seguros</p>
+      <p class="footer-small">Sistema seguro con cifrado end-to-end</p>
+    </div>
+  </div>
+</div>

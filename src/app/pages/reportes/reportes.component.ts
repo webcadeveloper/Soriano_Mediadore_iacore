@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subject, takeUntil } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -33,7 +34,9 @@ interface AnalisisPorRamo {
   templateUrl: './reportes.component.html',
   styleUrl: './reportes.component.scss'
 })
-export class ReportesComponent implements OnInit {
+export class ReportesComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   loading = false;
   topClientes: TopCliente[] = [];
   analisisPorRamo: AnalisisPorRamo[] = [];
@@ -52,36 +55,43 @@ export class ReportesComponent implements OnInit {
     this.cargarReportes();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarReportes(): void {
     this.loading = true;
 
-    this.apiService.getStats().subscribe({
-      next: (response) => {
-        const stats = response.estadisticas;
+    this.apiService.getStats()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          const stats = response.estadisticas;
 
-        // Estadísticas generales
-        this.totalClientes = stats.total_clientes;
-        this.totalPolizas = stats.total_polizas;
-        this.totalRecibos = stats.total_recibos;
-        this.totalSiniestros = stats.total_siniestros;
+          // Estadísticas generales
+          this.totalClientes = stats.total_clientes;
+          this.totalPolizas = stats.total_polizas;
+          this.totalRecibos = stats.total_recibos;
+          this.totalSiniestros = stats.total_siniestros;
 
-        // Top 20 clientes
-        if (stats.top_20_clientes) {
-          this.topClientes = stats.top_20_clientes;
+          // Top 20 clientes
+          if (stats.top_20_clientes) {
+            this.topClientes = stats.top_20_clientes;
+          }
+
+          // Análisis por ramo
+          if (stats.analisis_por_ramo) {
+            this.analisisPorRamo = stats.analisis_por_ramo;
+          }
+
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error cargando reportes:', err);
+          this.loading = false;
         }
-
-        // Análisis por ramo
-        if (stats.analisis_por_ramo) {
-          this.analisisPorRamo = stats.analisis_por_ramo;
-        }
-
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error cargando reportes:', err);
-        this.loading = false;
-      }
-    });
+      });
   }
 
   formatCurrency(value: number): string {

@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { Recibo, Template, ConfigRecobros, ReciboEstado, CanalComunicacion, EventoTipo } from '../../shared/models/recibo.model';
+import { SecureStorageService } from './secure-storage.service';
+import { SecurityService } from './security.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,15 +16,18 @@ export class RecobrosService {
   templates$ = this.templatesSubject.asObservable();
   config$ = this.configSubject.asObservable();
 
-  constructor() {
-    // Cargar datos del localStorage si existen
-    const savedRecibos = localStorage.getItem('recobros_recibos');
-    const savedTemplates = localStorage.getItem('recobros_templates');
-    const savedConfig = localStorage.getItem('recobros_config');
+  constructor(
+    private secureStorage: SecureStorageService,
+    private securityService: SecurityService
+  ) {
+    // Cargar datos del secure storage si existen
+    const savedRecibos = this.secureStorage.getItem<Recibo[]>('recobros_recibos');
+    const savedTemplates = this.secureStorage.getItem<Template[]>('recobros_templates');
+    const savedConfig = this.secureStorage.getItem<ConfigRecobros>('recobros_config');
 
-    if (savedRecibos) this.recibosSubject.next(JSON.parse(savedRecibos));
-    if (savedTemplates) this.templatesSubject.next(JSON.parse(savedTemplates));
-    if (savedConfig) this.configSubject.next(JSON.parse(savedConfig));
+    if (savedRecibos) this.recibosSubject.next(savedRecibos);
+    if (savedTemplates) this.templatesSubject.next(savedTemplates);
+    if (savedConfig) this.configSubject.next(savedConfig);
   }
 
   // ===== RECIBOS =====
@@ -34,21 +39,21 @@ export class RecobrosService {
     const current = this.recibosSubject.value;
     const updated = [...recibos, ...current];
     this.recibosSubject.next(updated);
-    localStorage.setItem('recobros_recibos', JSON.stringify(updated));
+    this.secureStorage.setItem('recobros_recibos', updated);
   }
 
   updateRecibo(id: string, updates: Partial<Recibo>): void {
     const current = this.recibosSubject.value;
     const updated = current.map(r => r.id === id ? { ...r, ...updates } : r);
     this.recibosSubject.next(updated);
-    localStorage.setItem('recobros_recibos', JSON.stringify(updated));
+    this.secureStorage.setItem('recobros_recibos', updated);
   }
 
   deleteRecibo(id: string): void {
     const current = this.recibosSubject.value;
     const updated = current.map(r => r.id === id ? { ...r, deleted: true } : r);
     this.recibosSubject.next(updated);
-    localStorage.setItem('recobros_recibos', JSON.stringify(updated));
+    this.secureStorage.setItem('recobros_recibos', updated);
   }
 
   // ===== TEMPLATES =====
@@ -60,7 +65,7 @@ export class RecobrosService {
     const current = this.templatesSubject.value;
     const updated = current.map(t => t.id === id ? { ...t, ...updates } : t);
     this.templatesSubject.next(updated);
-    localStorage.setItem('recobros_templates', JSON.stringify(updated));
+    this.secureStorage.setItem('recobros_templates', updated);
   }
 
   // ===== CONFIG =====
@@ -72,7 +77,7 @@ export class RecobrosService {
     const current = this.configSubject.value;
     const updated = { ...current, ...updates };
     this.configSubject.next(updated);
-    localStorage.setItem('recobros_config', JSON.stringify(updated));
+    this.secureStorage.setItem('recobros_config', updated);
   }
 
   // ===== UTILIDADES =====
@@ -97,26 +102,18 @@ export class RecobrosService {
     return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
   }
 
+  /**
+   * Valida un IBAN usando el SecurityService
+   */
   validarIBAN(iban?: string): boolean {
-    if (!iban) return false;
-    const s = iban.replace(/\s+/g, '').toUpperCase();
-    if (!/^([A-Z]{2}\d{2}[A-Z0-9]{1,30})$/.test(s)) return false;
-    const re = s.slice(4) + s.slice(0, 4);
-    const num = re.replace(/[A-Z]/g, (c) => (c.charCodeAt(0) - 55).toString());
-    let mod = 0;
-    for (let i = 0; i < num.length; i += 7) {
-      const part = (mod.toString() + num.substring(i, i + 7));
-      mod = parseInt(part, 10) % 97;
-    }
-    return mod === 1;
+    return this.securityService.validateIBAN(iban);
   }
 
+  /**
+   * Verifica si una URL es HTTPS usando el SecurityService
+   */
   esHttps(url?: string): boolean {
-    try {
-      return !!url && new URL(url).protocol === 'https:';
-    } catch {
-      return false;
-    }
+    return this.securityService.isHttps(url);
   }
 
   // ===== SEED DATA =====

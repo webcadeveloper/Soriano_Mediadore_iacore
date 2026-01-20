@@ -1,21 +1,127 @@
-// Custom Angular Material theme - Soriano Mediadores (ROJO)
+// Custom Angular Material theme - Soriano Mediadores (ROJO SEMIOSCURO)
 @use '@angular/material' as mat;
 
 @include mat.core();
 
-// Use the pink palette which contains our red color (#c2185b at shade 800)
-$my-primary: mat.m2-define-palette(mat.$m2-pink-palette, 800);
-$my-accent: mat.m2-define-palette(mat.$m2-pink-palette, A200, A100, A400);
-$my-warn: mat.m2-define-palette(mat.$m2-red-palette);
+// Paleta personalizada rojo semioscuro (#8b4049)
+$soriano-red-palette: (
+  50: #f7e9eb,
+  100: #ebc8cc,
+  200: #dea4aa,
+  300: #d18088,
+  400: #c7656f,
+  500: #bd4a55,  // Base color más claro para contraste
+  600: #b7434e,
+  700: #ae3a44,
+  800: #a6323b,
+  900: #8b4049,  // Nuestro color principal - sombra más oscura
+  A100: #ffc2c9,
+  A200: #ff8f9c,
+  A400: #ff5c70,
+  A700: #ff4259,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: rgba(black, 0.87),
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+    A100: rgba(black, 0.87),
+    A200: rgba(black, 0.87),
+    A400: white,
+    A700: white,
+  )
+);
 
-// Create the theme
+// Usar 900 (nuestro #8b4049) como color principal
+$my-primary: mat.m2-define-palette($soriano-red-palette, 900, 800, 900);
+$my-accent: mat.m2-define-palette($soriano-red-palette, 500, 400, 600);
+$my-warn: mat.m2-define-palette(mat.$m2-red-palette, 600);
+
+// Paleta de grises personalizada para mejor contraste
+$soriano-gray-palette: (
+  50: #fafafa,
+  100: #f5f5f5,
+  200: #eeeeee,
+  300: #e0e0e0,
+  400: #bdbdbd,
+  500: #9e9e9e,
+  600: #757575,
+  700: #616161,
+  800: #424242,
+  900: #2c2c2c,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: rgba(black, 0.87),
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+  )
+);
+
+// Crear tema con tipografía mejorada
+$my-typography: mat.m2-define-typography-config(
+  $font-family: 'Roboto, "Helvetica Neue", sans-serif',
+  $headline-1: mat.m2-define-typography-level(2.5rem, 3rem, 700),
+  $headline-2: mat.m2-define-typography-level(2rem, 2.5rem, 600),
+  $headline-3: mat.m2-define-typography-level(1.5rem, 2rem, 600),
+  $headline-4: mat.m2-define-typography-level(1.25rem, 1.75rem, 600),
+  $headline-5: mat.m2-define-typography-level(1.1rem, 1.5rem, 600),
+  $headline-6: mat.m2-define-typography-level(1rem, 1.5rem, 600),
+  $body-1: mat.m2-define-typography-level(1rem, 1.5rem, 400),
+  $body-2: mat.m2-define-typography-level(0.875rem, 1.25rem, 400),
+  $button: mat.m2-define-typography-level(0.875rem, 2.25rem, 500),
+  $caption: mat.m2-define-typography-level(0.75rem, 1.25rem, 400),
+);
+
+// Create the light theme with improved contrast
 $my-theme: mat.m2-define-light-theme((
   color: (
     primary: $my-primary,
     accent: $my-accent,
     warn: $my-warn,
-  )
+  ),
+  typography: $my-typography,
+  density: 0,
 ));
 
 // Include theme styles for all Material components
 @include mat.all-component-themes($my-theme);
+
+// Override para asegurar fondo blanco puro
+.mat-app-background {
+  background-color: #ffffff;
+}
+
+// Mejorar contraste en textos
+.mat-body, .mat-body-1, .mat-typography .mat-body, .mat-typography .mat-body-1 {
+  color: #2c2c2c;
+}
+
+.mat-body-2, .mat-typography .mat-body-2 {
+  color: #666666;
+}
+
+// Cards con fondo blanco puro
+.mat-mdc-card {
+  background-color: #ffffff !important;
+  color: #2c2c2c !important;
+}
+
+// Mejorar contraste en formularios
+.mat-mdc-form-field-label, .mat-mdc-select-placeholder {
+  color: #666666 !important;
+}
+
+.mat-mdc-input-element {
+  color: #2c2c2c !important;
+}

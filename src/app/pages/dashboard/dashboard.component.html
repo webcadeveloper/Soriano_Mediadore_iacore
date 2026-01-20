@@ -362,7 +362,7 @@
 
     <!-- Cards de clientes para mobile -->
     <div *ngIf="!loadingClientes && recentClientes.length > 0" class="clients-cards show-mobile">
-      <mat-card *ngFor="let cliente of recentClientes" class="client-mobile-card">
+      <mat-card *ngFor="let cliente of recentClientes; trackBy: trackByClienteId" class="client-mobile-card">
         <div class="mobile-card-header">
           <div class="client-avatar-large">
             {{ cliente.nombre_completo?.charAt(0) || '?' }}
