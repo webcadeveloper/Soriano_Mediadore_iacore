@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } from '@angular/common/http';
-import { Observable, of, delay } from 'rxjs';
+import { Observable, of, delay, catchError, throwError } from 'rxjs';
 
 /**
  * Interceptor que simula respuestas del backend
@@ -8,11 +8,38 @@ import { Observable, of, delay } from 'rxjs';
  */
 @Injectable()
 export class MockInterceptor implements HttpInterceptor {
+  private useRealBackend = false;
+  private backendChecked = false;
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Solo interceptar llamadas a /api
     if (!req.url.includes('/api')) {
       return next.handle(req);
+    }
+
+    // Si ya verificamos el backend y funciona, usar backend real
+    if (this.useRealBackend) {
+      return next.handle(req);
+    }
+
+    // Si aún no verificamos el backend, intentar conectar
+    if (!this.backendChecked) {
+      this.backendChecked = true;
+      // Intentar llamada real primero
+      return next.handle(req).pipe(
+        catchError((error) => {
+          // Si falla, usar mock para esta y futuras llamadas
+          console.warn('Backend no disponible, usando datos mock:', error.message);
+          const mockResponse = this.getMockResponse(req);
+          if (mockResponse) {
+            return of(new HttpResponse({
+              status: 200,
+              body: mockResponse
+            })).pipe(delay(300));
+          }
+          return throwError(() => error);
+        })
+      );
     }
 
     // Simular respuestas según el endpoint

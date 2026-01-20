@@ -77,7 +77,9 @@ Sistema CRM moderno y seguro para la gestión integral de mediadores de seguros,
 - **PWA**: @angular/service-worker 18.2.14
 - **SEO**: Meta Tags dinámicos + JSON-LD
 
-## 🛠️ Instalación
+## 🛠️ Instalación y Configuración
+
+### Frontend (Angular)
 
 ```bash
 # Instalar dependencias
@@ -93,6 +95,39 @@ npm run build
 # Ejecutar tests
 npm test
 ```
+
+### Backend (Go + PostgreSQL)
+
+El backend está en `/workspaces/Soriano_Backend/` y ya está **compilado y listo**.
+
+**Paso 1: Configurar la base de datos**
+
+```bash
+# Crear la base de datos (requiere permisos sudo)
+sudo -u postgres psql < /workspaces/Soriano_Backend/setup_db.sql
+```
+
+**Paso 2: Iniciar el backend**
+
+```bash
+cd /workspaces/Soriano_Backend
+./soriano-backend
+```
+
+El backend estará disponible en: **http://localhost:8080**
+
+**Verificar estado del backend:**
+```bash
+curl http://localhost:8080/health
+```
+
+### Modo sin Backend
+
+Si no puedes configurar la base de datos, la aplicación funciona automáticamente con **datos mock**. El `MockInterceptor` detecta si el backend está disponible:
+- ✅ Backend disponible → usa datos reales
+- ✅ Backend no disponible → usa datos mock automáticamente
+
+Ver más detalles en [`/workspaces/Soriano_Backend/README.md`](../Soriano_Backend/README.md)
 
 ## 📁 Estructura del Proyecto
 
