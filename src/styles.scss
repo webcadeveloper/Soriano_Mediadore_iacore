@@ -506,6 +506,63 @@ button.mat-mdc-raised-button:not(.mat-unthemed):not(.mat-accent):not(.mat-warn) 
   color: #8b4049 !important;
 }
 
+// ===== NOTIFICATION SNACKBAR STYLES =====
+.snackbar-success {
+  .mdc-snackbar__surface {
+    background-color: var(--success-color) !important;
+  }
+
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+  }
+
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+.snackbar-error {
+  .mdc-snackbar__surface {
+    background-color: var(--error-color) !important;
+  }
+
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+  }
+
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+.snackbar-warning {
+  .mdc-snackbar__surface {
+    background-color: var(--warning-color) !important;
+  }
+
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+  }
+
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+.snackbar-info {
+  .mdc-snackbar__surface {
+    background-color: var(--info-color) !important;
+  }
+
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+  }
+
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
 // ===== PRINT STYLES =====
 @media print {
   .no-print {
