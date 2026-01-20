@@ -1,0 +1,416 @@
+<div class="dashboard-container">
+  <!-- Header del Dashboard -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1 class="dashboard-title">Dashboard</h1>
+      <p class="dashboard-subtitle">Bienvenido a Soriano Mediadores CRM</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button color="primary">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner color="primary"></mat-spinner>
+    <p>Cargando estadísticas...</p>
+  </div>
+
+  <!-- Estado de error -->
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-card class="error-card">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <h3>Error al cargar datos</h3>
+      <p>{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="loadStats()">
+        <mat-icon>refresh</mat-icon>
+        Reintentar
+      </button>
+    </mat-card>
+  </div>
+
+  <!-- Grid de estadísticas principales -->
+  <div *ngIf="stats && !loading" class="stats-section">
+    <div class="stats-grid">
+      <!-- Card Clientes -->
+      <mat-card class="stat-card clients-card">
+        <div class="stat-background">
+          <mat-icon class="stat-bg-icon">people</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-header">
+            <mat-icon class="stat-icon">people</mat-icon>
+            <span class="stat-label">Clientes</span>
+          </div>
+          <h2 class="stat-value">{{ stats.total_clientes | number }}</h2>
+          <div class="stat-footer">
+            <span class="stat-trend positive">
+              <mat-icon>trending_up</mat-icon>
+              5.2% vs mes anterior
+            </span>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Card Pólizas -->
+      <mat-card class="stat-card policies-card">
+        <div class="stat-background">
+          <mat-icon class="stat-bg-icon">description</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-header">
+            <mat-icon class="stat-icon">description</mat-icon>
+            <span class="stat-label">Pólizas Activas</span>
+          </div>
+          <h2 class="stat-value">{{ stats.total_polizas | number }}</h2>
+          <div class="stat-footer">
+            <span class="stat-trend positive">
+              <mat-icon>trending_up</mat-icon>
+              3.1% vs mes anterior
+            </span>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Card Recibos -->
+      <mat-card class="stat-card receipts-card">
+        <div class="stat-background">
+          <mat-icon class="stat-bg-icon">receipt</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-header">
+            <mat-icon class="stat-icon">receipt</mat-icon>
+            <span class="stat-label">Recibos</span>
+          </div>
+          <h2 class="stat-value">{{ stats.total_recibos | number }}</h2>
+          <div class="stat-footer">
+            <span class="stat-trend neutral">
+              <mat-icon>remove</mat-icon>
+              Sin cambios
+            </span>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Card Siniestros -->
+      <mat-card class="stat-card claims-card">
+        <div class="stat-background">
+          <mat-icon class="stat-bg-icon">report_problem</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-header">
+            <mat-icon class="stat-icon">report_problem</mat-icon>
+            <span class="stat-label">Siniestros</span>
+          </div>
+          <h2 class="stat-value">{{ stats.total_siniestros | number }}</h2>
+          <div class="stat-footer">
+            <span class="stat-trend negative">
+              <mat-icon>trending_down</mat-icon>
+              -12% vs mes anterior
+            </span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Sección de archivos de importación -->
+  <div *ngIf="stats && !loading" class="import-files-section">
+    <h2 class="section-title">
+      <mat-icon>cloud_upload</mat-icon>
+      Archivos de Importación Occident
+    </h2>
+    <div class="files-grid">
+      <!-- Archivo Clientes -->
+      <mat-card class="file-card" routerLink="/admin/import" [matTooltip]="'Click para importar datos de clientes desde Occident'" matTooltipPosition="above">
+        <div class="file-icon-wrapper clientes-color">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="file-svg-icon">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
+        <div class="file-info">
+          <h3 class="file-title">Clientes</h3>
+          <p class="file-name">DatosExportados_*.csv</p>
+          <div class="file-stats">
+            <mat-chip class="file-chip">{{ stats.total_clientes | number }} registros</mat-chip>
+          </div>
+        </div>
+        <mat-icon class="file-arrow">upload_file</mat-icon>
+      </mat-card>
+
+      <!-- Archivo Pólizas -->
+      <mat-card class="file-card" routerLink="/admin/import" [matTooltip]="'Click para importar pólizas desde Occident'" matTooltipPosition="above">
+        <div class="file-icon-wrapper polizas-color">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="file-svg-icon">
+            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+          </svg>
+        </div>
+        <div class="file-info">
+          <h3 class="file-title">Pólizas</h3>
+          <p class="file-name">POLIZAS.csv</p>
+          <div class="file-stats">
+            <mat-chip class="file-chip">{{ stats.total_polizas | number }} registros</mat-chip>
+          </div>
+        </div>
+        <mat-icon class="file-arrow">upload_file</mat-icon>
+      </mat-card>
+
+      <!-- Archivo Recibos -->
+      <mat-card class="file-card" routerLink="/admin/import" [matTooltip]="'Click para importar recibos desde Occident'" matTooltipPosition="above">
+        <div class="file-icon-wrapper recibos-color">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="file-svg-icon">
+            <path d="M19 14V6c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zm-9-1c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm13-6v11c0 1.1-.9 2-2 2H4v-2h17V7h2z"/>
+          </svg>
+        </div>
+        <div class="file-info">
+          <h3 class="file-title">Recibos</h3>
+          <p class="file-name">RECIBOS.csv</p>
+          <div class="file-stats">
+            <mat-chip class="file-chip">{{ stats.total_recibos | number }} registros</mat-chip>
+          </div>
+        </div>
+        <mat-icon class="file-arrow">upload_file</mat-icon>
+      </mat-card>
+
+      <!-- Archivo Siniestros -->
+      <mat-card class="file-card" routerLink="/admin/import" [matTooltip]="'Click para importar siniestros desde Occident'" matTooltipPosition="above">
+        <div class="file-icon-wrapper siniestros-color">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="file-svg-icon">
+            <path d="M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>
+          </svg>
+        </div>
+        <div class="file-info">
+          <h3 class="file-title">Siniestros</h3>
+          <p class="file-name">SINIESTROS.csv</p>
+          <div class="file-stats">
+            <mat-chip class="file-chip">{{ stats.total_siniestros | number }} registros</mat-chip>
+          </div>
+        </div>
+        <mat-icon class="file-arrow">upload_file</mat-icon>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Sección de accesos rápidos -->
+  <div *ngIf="stats && !loading" class="quick-actions-section">
+    <h2 class="section-title">
+      <mat-icon>bolt</mat-icon>
+      Accesos Rápidos
+    </h2>
+    <div class="actions-grid">
+      <mat-card class="action-card" routerLink="/clientes">
+        <div class="action-icon-wrapper blue">
+          <mat-icon>search</mat-icon>
+        </div>
+        <div class="action-content">
+          <h3>Buscar Clientes</h3>
+          <p>Encuentra y gestiona la información de tus clientes</p>
+        </div>
+        <mat-icon class="action-arrow">arrow_forward</mat-icon>
+      </mat-card>
+
+      <mat-card class="action-card" routerLink="/bots">
+        <div class="action-icon-wrapper pink">
+          <mat-icon>smart_toy</mat-icon>
+        </div>
+        <div class="action-content">
+          <h3>Asistentes AI</h3>
+          <p>Chatea con bots inteligentes para consultas rápidas</p>
+        </div>
+        <mat-icon class="action-arrow">arrow_forward</mat-icon>
+      </mat-card>
+
+      <mat-card class="action-card" routerLink="/reportes">
+        <div class="action-icon-wrapper orange">
+          <mat-icon>assessment</mat-icon>
+        </div>
+        <div class="action-content">
+          <h3>Reportes</h3>
+          <p>Análisis detallado y estadísticas del negocio</p>
+        </div>
+        <mat-icon class="action-arrow">arrow_forward</mat-icon>
+      </mat-card>
+
+      <mat-card class="action-card disabled">
+        <div class="action-icon-wrapper green">
+          <mat-icon>add_circle</mat-icon>
+        </div>
+        <div class="action-content">
+          <h3>Nuevo Cliente</h3>
+          <p>Registra un nuevo cliente en el sistema</p>
+        </div>
+        <mat-icon class="action-arrow">arrow_forward</mat-icon>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Sección de clientes completos -->
+  <div *ngIf="stats && !loading" class="clients-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <mat-icon>people</mat-icon>
+        Base de Clientes ({{ recentClientes.length }})
+      </h2>
+      <button mat-stroked-button color="primary" routerLink="/clientes">
+        <mat-icon>visibility</mat-icon>
+        Ver Todos
+      </button>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="loadingClientes" class="loading-state">
+      <mat-spinner diameter="40" color="primary"></mat-spinner>
+      <p>Cargando clientes...</p>
+    </div>
+
+    <!-- Tabla de clientes para desktop -->
+    <mat-card *ngIf="!loadingClientes && recentClientes.length > 0" class="clients-table-card hide-mobile">
+      <table mat-table [dataSource]="recentClientes" class="clients-table">
+
+        <!-- Nombre Column -->
+        <ng-container matColumnDef="nombre_completo">
+          <th mat-header-cell *matHeaderCellDef>Cliente</th>
+          <td mat-cell *matCellDef="let cliente">
+            <div class="client-name-cell">
+              <div class="client-avatar">
+                {{ cliente.nombre_completo?.charAt(0) || '?' }}
+              </div>
+              <div class="client-info">
+                <strong>{{ cliente.nombre_completo }}</strong>
+                <small>ID: {{ cliente.id_account }}</small>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- NIF Column -->
+        <ng-container matColumnDef="nif">
+          <th mat-header-cell *matHeaderCellDef>NIF</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="nif-badge">{{ cliente.nif }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Email Column -->
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="contact-info" *ngIf="cliente.email">
+              <mat-icon>email</mat-icon>
+              {{ cliente.email }}
+            </span>
+            <span class="no-data" *ngIf="!cliente.email">-</span>
+          </td>
+        </ng-container>
+
+        <!-- Teléfono Column -->
+        <ng-container matColumnDef="telefono">
+          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="contact-info" *ngIf="cliente.telefono">
+              <mat-icon>phone</mat-icon>
+              {{ cliente.telefono }}
+            </span>
+            <span class="no-data" *ngIf="!cliente.telefono">-</span>
+          </td>
+        </ng-container>
+
+        <!-- Provincia Column -->
+        <ng-container matColumnDef="provincia">
+          <th mat-header-cell *matHeaderCellDef>Ubicación</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="location-info" *ngIf="cliente.provincia">
+              <mat-icon>location_on</mat-icon>
+              {{ cliente.provincia }}
+            </span>
+            <span class="no-data" *ngIf="!cliente.provincia">-</span>
+          </td>
+        </ng-container>
+
+        <!-- Primas Column -->
+        <ng-container matColumnDef="total_primas">
+          <th mat-header-cell *matHeaderCellDef>Primas</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="primas-amount" *ngIf="cliente.total_primas">
+              {{ formatCurrency(cliente.total_primas) }}
+            </span>
+            <span class="no-data" *ngIf="!cliente.total_primas">0.00 €</span>
+          </td>
+        </ng-container>
+
+        <!-- Acciones Column -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let cliente">
+            <button
+              mat-icon-button
+              color="primary"
+              [routerLink]="['/cliente-detalle', cliente.id]"
+              matTooltip="Ver detalles">
+              <mat-icon>visibility</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+      </table>
+    </mat-card>
+
+    <!-- Cards de clientes para mobile -->
+    <div *ngIf="!loadingClientes && recentClientes.length > 0" class="clients-cards show-mobile">
+      <mat-card *ngFor="let cliente of recentClientes" class="client-mobile-card">
+        <div class="mobile-card-header">
+          <div class="client-avatar-large">
+            {{ cliente.nombre_completo?.charAt(0) || '?' }}
+          </div>
+          <div class="client-main-info">
+            <h3>{{ cliente.nombre_completo }}</h3>
+            <p class="nif-text">{{ cliente.nif }}</p>
+          </div>
+        </div>
+
+        <div class="mobile-card-body">
+          <div class="info-row" *ngIf="cliente.email">
+            <mat-icon>email</mat-icon>
+            <span>{{ cliente.email }}</span>
+          </div>
+          <div class="info-row" *ngIf="cliente.telefono">
+            <mat-icon>phone</mat-icon>
+            <span>{{ cliente.telefono }}</span>
+          </div>
+          <div class="info-row" *ngIf="cliente.provincia">
+            <mat-icon>location_on</mat-icon>
+            <span>{{ cliente.provincia }}, {{ cliente.codigo_postal || 'N/A' }}</span>
+          </div>
+          <div class="info-row primas-row" *ngIf="cliente.total_primas">
+            <mat-icon>euro</mat-icon>
+            <strong>{{ formatCurrency(cliente.total_primas) }}</strong>
+          </div>
+        </div>
+
+        <div class="mobile-card-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            [routerLink]="['/cliente-detalle', cliente.id]">
+            <mat-icon>visibility</mat-icon>
+            Ver Detalles
+          </button>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Empty state -->
+    <mat-card *ngIf="!loadingClientes && recentClientes.length === 0" class="empty-state-card">
+      <div class="empty-state">
+        <mat-icon>people_outline</mat-icon>
+        <h3>No hay clientes</h3>
+        <p>No se encontraron clientes en el sistema</p>
+      </div>
+    </mat-card>
+  </div>
+</div>

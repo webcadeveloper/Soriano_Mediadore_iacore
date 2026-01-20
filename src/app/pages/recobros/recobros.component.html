@@ -1,0 +1,737 @@
+<div class="recobros-container">
+  <!-- Header con navegación -->
+  <div class="recobros-header">
+    <div class="header-content">
+      <h1 class="recobros-title">
+        <mat-icon>account_balance_wallet</mat-icon>
+        Soriano Recobros
+      </h1>
+      <p class="recobros-subtitle">Gestión de recibos impagados y comunicación con clientes</p>
+    </div>
+
+    <!-- Navegación -->
+    <div class="nav-tabs">
+      <button mat-button [class.active]="seccionActual === 'inicio'" (click)="cambiarSeccion('inicio')">
+        <mat-icon>dashboard</mat-icon>
+        Inicio
+      </button>
+      <button mat-button [class.active]="seccionActual === 'bandeja'" (click)="cambiarSeccion('bandeja')">
+        <mat-icon>inbox</mat-icon>
+        Bandeja
+      </button>
+      <button mat-button [class.active]="seccionActual === 'analitica'" (click)="cambiarSeccion('analitica')">
+        <mat-icon>bar_chart</mat-icon>
+        Analítica
+      </button>
+      <button mat-button [class.active]="seccionActual === 'carga'" (click)="cambiarSeccion('carga')">
+        <mat-icon>upload_file</mat-icon>
+        Carga
+      </button>
+      <button mat-button [class.active]="seccionActual === 'plantillas'" (click)="cambiarSeccion('plantillas')">
+        <mat-icon>description</mat-icon>
+        Plantillas
+      </button>
+      <button mat-button [class.active]="seccionActual === 'ajustes'" (click)="cambiarSeccion('ajustes')">
+        <mat-icon>settings</mat-icon>
+        Ajustes
+      </button>
+    </div>
+  </div>
+
+  <!-- SECCIÓN: INICIO (KPIs) -->
+  <div *ngIf="seccionActual === 'inicio'" class="seccion-inicio">
+    <div class="kpis-grid">
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-card-title>Total casos</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="kpi-value">{{ totalCasos }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-card-title>Devueltos</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="kpi-value">{{ totalDevueltos }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-card-title>Promesas</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="kpi-value">{{ totalPromesas }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-card-title>Recuperados</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="kpi-value">{{ totalRecuperados }}</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="kpis-grid-secondary">
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-card-title>Importe total</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="kpi-value-secondary">{{ formatImporte(importeTotal) }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-card-title>Ticket medio</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="kpi-value-secondary">{{ formatImporte(ticketMedio) }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-card-title>Días medios vencido</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="kpi-value-secondary">{{ diasMedios }}</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- SECCIÓN: BANDEJA -->
+  <div *ngIf="seccionActual === 'bandeja'" class="seccion-bandeja">
+    <!-- Filtros -->
+    <div class="filtros-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Buscar</mat-label>
+        <input matInput placeholder="Cliente, NIF, póliza, recibo..." [(ngModel)]="query">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select [(ngModel)]="estadoFilter">
+          <mat-option value="TODOS">Todos</mat-option>
+          <mat-option value="DEVUELTO">Devuelto</mat-option>
+          <mat-option value="EN_GESTION">En gestión</mat-option>
+          <mat-option value="PENDIENTE">Pendiente</mat-option>
+          <mat-option value="RECUPERADO">Recuperado</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Motivo</mat-label>
+        <mat-select [(ngModel)]="motivoFilter">
+          <mat-option value="ALL">Todos</mat-option>
+          <mat-option value="fondos">Fondos insuficientes</mat-option>
+          <mat-option value="cuenta">Cuenta/orden incorrecta</mat-option>
+          <mat-option value="revocación">Revocación</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" (click)="cambiarSeccion('carga')">
+        <mat-icon>add</mat-icon>
+        Importar
+      </button>
+    </div>
+
+    <!-- Tabla -->
+    <mat-card class="tabla-card">
+      <div class="tabla-container">
+        <table mat-table [dataSource]="recibosFiltrados" class="recibos-table">
+          <!-- Checkbox Column -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox
+                [checked]="selected.length === recibosFiltrados.length && recibosFiltrados.length > 0"
+                [indeterminate]="selected.length > 0 && selected.length < recibosFiltrados.length"
+                (change)="selectAll()">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-checkbox
+                [checked]="selected.includes(row.id)"
+                (change)="toggleSelection(row.id)">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+
+          <!-- Cliente Column -->
+          <ng-container matColumnDef="cliente">
+            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+            <td mat-cell *matCellDef="let row">{{ row.cliente }}</td>
+          </ng-container>
+
+          <!-- Importe Column -->
+          <ng-container matColumnDef="importe">
+            <th mat-header-cell *matHeaderCellDef>Importe</th>
+            <td mat-cell *matCellDef="let row" class="importe-cell">{{ formatImporte(row.importe) }}</td>
+          </ng-container>
+
+          <!-- Vencimiento Column -->
+          <ng-container matColumnDef="venc">
+            <th mat-header-cell *matHeaderCellDef>Venc</th>
+            <td mat-cell *matCellDef="let row">{{ formatFecha(row.venc) }}</td>
+          </ng-container>
+
+          <!-- Días Column -->
+          <ng-container matColumnDef="dias">
+            <th mat-header-cell *matHeaderCellDef>Días</th>
+            <td mat-cell *matCellDef="let row">{{ diasDesde(row.venc) }}</td>
+          </ng-container>
+
+          <!-- Motivo Column -->
+          <ng-container matColumnDef="motivo">
+            <th mat-header-cell *matHeaderCellDef>Motivo</th>
+            <td mat-cell *matCellDef="let row">{{ row.motivo }}</td>
+          </ng-container>
+
+          <!-- Estado Column -->
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let row">
+              <mat-chip>{{ row.estado }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let row">
+              <button mat-icon-button matTooltip="Ver detalles">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="primary" matTooltip="Enviar email" (click)="enviarEmailRecibo(row)">
+                <mat-icon>email</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['select', 'cliente', 'importe', 'venc', 'dias', 'motivo', 'estado', 'actions']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['select', 'cliente', 'importe', 'venc', 'dias', 'motivo', 'estado', 'actions']"></tr>
+        </table>
+      </div>
+    </mat-card>
+
+    <!-- Acciones masivas -->
+    <div *ngIf="selected.length > 0" class="acciones-masivas">
+      <span>{{ selected.length }} seleccionados</span>
+      <button mat-raised-button color="primary" (click)="enviarEmailsSeleccionados()">
+        <mat-icon>email</mat-icon>
+        Enviar emails
+      </button>
+      <button mat-button (click)="clearSelection()">Limpiar selección</button>
+    </div>
+  </div>
+
+  <!-- SECCIÓN: CARGA CSV -->
+  <div *ngIf="seccionActual === 'carga'" class="seccion-carga">
+    <mat-card class="carga-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>upload_file</mat-icon>
+          Importar recibos desde CSV
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="hint-text">
+          Cabeceras esperadas: <code>cliente;nif;poliza;num_recibo;venc;importe;motivo;tel;email</code>
+        </p>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Pega aquí el contenido CSV</mat-label>
+          <textarea
+            matInput
+            [(ngModel)]="pastedCsv"
+            rows="12"
+            placeholder="cliente;nif;poliza;num_recibo;venc;importe;motivo;tel;email&#10;Juan García;12345678A;POL-001;RCB-001;2025-01-15;150.50;R01;600123456;juan@ejemplo.es">
+          </textarea>
+        </mat-form-field>
+
+        <div class="carga-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="!pastedCsv.trim()"
+            (click)="processPastedCsv()">
+            <mat-icon>upload</mat-icon>
+            Procesar CSV
+          </button>
+          <button
+            mat-button
+            [disabled]="!pastedCsv.trim()"
+            (click)="pastedCsv = ''">
+            <mat-icon>clear</mat-icon>
+            Limpiar
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- SECCIÓN: PLANTILLAS -->
+  <div *ngIf="seccionActual === 'plantillas'" class="seccion-plantillas">
+    <mat-tab-group>
+      <!-- Tab: Plantillas SMS/WhatsApp -->
+      <mat-tab label="SMS / WhatsApp">
+        <div class="plantillas-layout">
+          <!-- Listado -->
+          <mat-card class="plantillas-list">
+            <mat-card-header>
+              <mat-card-title>Plantillas</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngFor="let cat of ['Previo al cargo', 'Devuelto', 'Seguimiento', 'Incidencias', 'Cierre', 'Multicanal']" class="categoria-group">
+                <div class="categoria-titulo">{{ cat }}</div>
+                <button
+                  *ngFor="let t of templatesByCategoria[cat]"
+                  mat-button
+                  class="template-item"
+                  [class.selected]="templateSeleccionado === t.id"
+                  (click)="templateSeleccionado = t.id">
+                  {{ t.nombre }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Editor -->
+          <mat-card class="plantillas-editor" *ngIf="templateActual">
+            <mat-card-header>
+              <mat-card-title>Editor de plantilla</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="editor-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Canal</mat-label>
+                  <mat-select [value]="templateActual.canal" (selectionChange)="actualizarTemplate('canal', $event.value)">
+                    <mat-option value="WA">WhatsApp</mat-option>
+                    <mat-option value="EMAIL">Email</mat-option>
+                    <mat-option value="SMS">SMS</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Variante</mat-label>
+                  <mat-select [value]="templateActual.variant" (selectionChange)="actualizarTemplate('variant', $event.value)">
+                    <mat-option value="A">A</mat-option>
+                    <mat-option value="B">B</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Motivo</mat-label>
+                  <mat-select [value]="templateActual.motivo || '—'" (selectionChange)="actualizarTemplate('motivo', $event.value === '—' ? undefined : $event.value)">
+                    <mat-option value="—">—</mat-option>
+                    <mat-option value="Preaviso">Preaviso</mat-option>
+                    <mat-option value="R01">R01</mat-option>
+                    <mat-option value="R03/R04">R03/R04</mat-option>
+                    <mat-option value="R08">R08</mat-option>
+                    <mat-option value="Recordatorio">Recordatorio</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nombre descriptivo</mat-label>
+                <input matInput [value]="templateActual.nombre" (input)="actualizarTemplate('nombre', $any($event.target).value)">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Texto A</mat-label>
+                <textarea matInput rows="6" [value]="templateActual.textoA" (input)="actualizarTemplate('textoA', $any($event.target).value)"></textarea>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Texto B</mat-label>
+                <textarea matInput rows="6" [value]="templateActual.textoB" (input)="actualizarTemplate('textoB', $any($event.target).value)"></textarea>
+              </mat-form-field>
+
+              <div class="preview-section">
+                <h3>Vista previa (primer caso)</h3>
+                <div class="preview-box">
+                  {{ recibos[0] ? '(Vista previa con primer recibo)' : 'No hay recibos para preview' }}
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab: Plantillas HTML para Email -->
+      <mat-tab label="Email HTML (Microsoft Graph)">
+        <div class="plantillas-layout">
+          <!-- Listado -->
+          <mat-card class="plantillas-list">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon>email</mat-icon>
+                Plantillas Email HTML
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngFor="let cat of ['Previo al cargo', 'Devuelto', 'Seguimiento', 'Incidencias', 'Cierre']" class="categoria-group">
+                <div class="categoria-titulo">{{ cat }}</div>
+                <button
+                  *ngFor="let t of emailTemplatesByCategoria[cat]"
+                  mat-button
+                  class="template-item"
+                  [class.selected]="emailTemplateSeleccionado === t.id"
+                  (click)="seleccionarEmailTemplate(t.id)">
+                  <mat-icon *ngIf="!t.activo" style="font-size: 16px; margin-right: 4px;">visibility_off</mat-icon>
+                  {{ t.nombre }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Editor -->
+          <mat-card class="plantillas-editor" *ngIf="emailTemplateActual">
+            <mat-card-header>
+              <mat-card-title>Editor de plantilla HTML</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="editor-grid">
+                <mat-form-field appearance="outline" class="full-width" style="grid-column: 1 / -1;">
+                  <mat-label>Nombre de la plantilla</mat-label>
+                  <input matInput [value]="emailTemplateActual.nombre" (input)="actualizarEmailTemplate('nombre', $any($event.target).value)">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width" style="grid-column: 1 / -1;">
+                  <mat-label>Asunto del email</mat-label>
+                  <input matInput [value]="emailTemplateActual.asunto" (input)="actualizarEmailTemplate('asunto', $any($event.target).value)">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Categoría</mat-label>
+                  <mat-select [value]="emailTemplateActual.categoria" (selectionChange)="actualizarEmailTemplate('categoria', $event.value)">
+                    <mat-option value="Previo al cargo">Previo al cargo</mat-option>
+                    <mat-option value="Devuelto">Devuelto</mat-option>
+                    <mat-option value="Seguimiento">Seguimiento</mat-option>
+                    <mat-option value="Incidencias">Incidencias</mat-option>
+                    <mat-option value="Cierre">Cierre</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Motivo (opcional)</mat-label>
+                  <input matInput [value]="emailTemplateActual.motivo || ''" (input)="actualizarEmailTemplate('motivo', $any($event.target).value || undefined)">
+                </mat-form-field>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <mat-checkbox
+                    [checked]="emailTemplateActual.incluirBloquePago"
+                    (change)="actualizarEmailTemplate('incluirBloquePago', $event.checked)">
+                    Incluir bloque de pago
+                  </mat-checkbox>
+                  <mat-checkbox
+                    [checked]="emailTemplateActual.activo"
+                    (change)="actualizarEmailTemplate('activo', $event.checked)">
+                    Activo
+                  </mat-checkbox>
+                </div>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Contenido HTML del email (body)</mat-label>
+                <textarea matInput rows="12" [value]="emailTemplateActual.htmlContent" (input)="actualizarEmailTemplate('htmlContent', $any($event.target).value)"></textarea>
+                <mat-hint>Variables disponibles: {{ getVariablesDisponibles().join(', ') }}</mat-hint>
+              </mat-form-field>
+
+              <div class="preview-section">
+                <h3>Vista previa del email completo</h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+                  Esta vista previa muestra cómo se verá el email completo con datos de ejemplo
+                </p>
+                <div class="preview-box" [innerHTML]="previewHtml" style="background-color: #fff; max-height: 600px; overflow-y: auto;"></div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <!-- SECCIÓN: ANALÍTICA -->
+  <div *ngIf="seccionActual === 'analitica'" class="seccion-analitica">
+
+    <!-- Loading spinner -->
+    <div *ngIf="loadingKPIs" class="loading-container">
+      <mat-icon>hourglass_empty</mat-icon>
+      <p>Cargando KPIs desde la base de datos...</p>
+    </div>
+
+    <!-- KPIs REALES DE LA BASE DE DATOS -->
+    <div *ngIf="!loadingKPIs && statsGeneral" class="kpis-principales">
+      <h2>📊 Estadísticas Generales del Sistema</h2>
+      <div class="kpis-grid-stats">
+        <mat-card class="kpi-stat-card">
+          <div class="kpi-stat-icon">👥</div>
+          <div class="kpi-stat-value">{{ statsGeneral.total_clientes | number }}</div>
+          <div class="kpi-stat-label">Clientes Totales</div>
+        </mat-card>
+
+        <mat-card class="kpi-stat-card">
+          <div class="kpi-stat-icon">📄</div>
+          <div class="kpi-stat-value">{{ statsGeneral.total_recibos | number }}</div>
+          <div class="kpi-stat-label">Recibos Totales</div>
+        </mat-card>
+
+        <mat-card class="kpi-stat-card urgent">
+          <div class="kpi-stat-icon">🔴</div>
+          <div class="kpi-stat-value">{{ statsGeneral.recibos_devueltos | number }}</div>
+          <div class="kpi-stat-label">Recibos Devueltos</div>
+        </mat-card>
+
+        <mat-card class="kpi-stat-card urgent">
+          <div class="kpi-stat-icon">⚠️</div>
+          <div class="kpi-stat-value">{{ statsGeneral.clientes_con_deuda | number }}</div>
+          <div class="kpi-stat-label">Clientes con Deuda</div>
+        </mat-card>
+
+        <mat-card class="kpi-stat-card money">
+          <div class="kpi-stat-icon">💰</div>
+          <div class="kpi-stat-value">{{ statsGeneral.deuda_total | number:'1.2-2' }}€</div>
+          <div class="kpi-stat-label">Deuda Total</div>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- KPIs DE RECIBOS POR SITUACIÓN -->
+    <div *ngIf="!loadingKPIs && recibosKPI" class="analitica-grid">
+      <h2>💼 Distribución de Recibos por Situación</h2>
+
+      <div class="recibos-kpi-grid">
+        <mat-card class="kpi-recibo-card cobrado">
+          <mat-card-header>
+            <mat-card-title>✅ Cobrados</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="kpi-recibo-value">{{ recibosKPI.total_cobrados | number }}</div>
+            <div class="kpi-recibo-porcentaje">
+              {{ (recibosKPI.total_cobrados / recibosKPI.total_recibos * 100) | number:'1.1-1' }}%
+            </div>
+            <div class="kpi-recibo-importe">{{ recibosKPI.importe_cobrado | number:'1.2-2' }}€</div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-recibo-card pendiente">
+          <mat-card-header>
+            <mat-card-title>⏳ Pendientes</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="kpi-recibo-value">{{ recibosKPI.total_pendientes | number }}</div>
+            <div class="kpi-recibo-porcentaje">
+              {{ (recibosKPI.total_pendientes / recibosKPI.total_recibos * 100) | number:'1.1-1' }}%
+            </div>
+            <div class="kpi-recibo-importe">{{ recibosKPI.importe_pendiente | number:'1.2-2' }}€</div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-recibo-card anulado">
+          <mat-card-header>
+            <mat-card-title>❌ Anulados</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="kpi-recibo-value">{{ recibosKPI.total_anulados | number }}</div>
+            <div class="kpi-recibo-porcentaje">
+              {{ (recibosKPI.total_anulados / recibosKPI.total_recibos * 100) | number:'1.1-1' }}%
+            </div>
+            <div class="kpi-recibo-importe">{{ recibosKPI.importe_anulado | number:'1.2-2' }}€</div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-recibo-card retornado">
+          <mat-card-header>
+            <mat-card-title>🔴 Retornados (ACCIÓN REQUERIDA)</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="kpi-recibo-value urgente">{{ recibosKPI.total_retornados | number }}</div>
+            <div class="kpi-recibo-porcentaje">
+              {{ (recibosKPI.total_retornados / recibosKPI.total_recibos * 100) | number:'1.1-1' }}%
+            </div>
+            <div class="kpi-recibo-importe urgente">{{ recibosKPI.importe_retornado | number:'1.2-2' }}€</div>
+            <button mat-raised-button color="warn" class="action-button">
+              Ver Recibos Devueltos
+            </button>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Resumen Total -->
+      <mat-card class="resumen-total">
+        <mat-card-header>
+          <mat-card-title>📈 Resumen Total de Recibos</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="resumen-grid">
+            <div class="resumen-item">
+              <span class="resumen-label">Total Recibos:</span>
+              <span class="resumen-value">{{ recibosKPI.total_recibos | number }}</span>
+            </div>
+            <div class="resumen-item">
+              <span class="resumen-label">Importe Total:</span>
+              <span class="resumen-value">{{ recibosKPI.total_importe | number:'1.2-2' }}€</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- TABLA DE RECIBOS RETORNADOS CON CONTACTO -->
+      <div *ngIf="recibosKPI.total_retornados > 0" class="tabla-retornados">
+        <h2>🔴 Recibos Retornados - Requieren Acción Inmediata</h2>
+        <p class="subtitulo-tabla">{{ recibosKPI.total_retornados }} recibos devueltos con información de contacto para envío de emails</p>
+
+        <mat-card class="tabla-card">
+          <div class="tabla-scroll">
+            <table class="recibos-table">
+              <thead>
+                <tr>
+                  <th>Recibo</th>
+                  <th>Cliente</th>
+                  <th>NIF</th>
+                  <th>📧 Email</th>
+                  <th>📞 Teléfono</th>
+                  <th>Importe</th>
+                  <th>Días</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let recibo of recibosKPI.recibos" class="recibo-row">
+                  <td class="recibo-numero">{{ recibo.numero_recibo }}</td>
+                  <td class="cliente-nombre">{{ recibo.cliente }}</td>
+                  <td class="nif">{{ recibo.nif || 'N/A' }}</td>
+                  <td class="email">
+                    <a *ngIf="recibo.email" [href]="'mailto:' + recibo.email" class="contact-link">
+                      <mat-icon>email</mat-icon>
+                      {{ recibo.email }}
+                    </a>
+                    <span *ngIf="!recibo.email" class="no-data">Sin email</span>
+                  </td>
+                  <td class="telefono">
+                    <a *ngIf="recibo.telefono" [href]="'tel:' + recibo.telefono" class="contact-link">
+                      <mat-icon>phone</mat-icon>
+                      {{ recibo.telefono }}
+                    </a>
+                    <span *ngIf="!recibo.telefono" class="no-data">Sin teléfono</span>
+                  </td>
+                  <td class="importe">{{ recibo.prima_total | number:'1.2-2' }}€</td>
+                  <td class="dias">
+                    <span class="badge-dias" [class.urgente]="recibo.dias_desde_ultimo_cambio > 7">
+                      {{ recibo.dias_desde_ultimo_cambio }} días
+                    </span>
+                  </td>
+                  <td class="acciones">
+                    <button mat-icon-button color="primary" matTooltip="Enviar email de recobro">
+                      <mat-icon>send</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tabla-footer">
+            <div class="footer-info">
+              <strong>Total:</strong> {{ recibosKPI.total_retornados }} recibos · <strong class="deuda-total">{{ recibosKPI.importe_retornado | number:'1.2-2' }}€</strong> en deuda
+            </div>
+            <button mat-raised-button color="warn" class="btn-enviar-todos">
+              <mat-icon>send</mat-icon>
+              Enviar Emails a Todos ({{ recibosKPI.total_retornados }})
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN: AJUSTES -->
+  <div *ngIf="seccionActual === 'ajustes'" class="seccion-ajustes">
+    <mat-card class="ajustes-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>settings</mat-icon>
+          Configuración de pagos
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="ajustes-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Dominio seguro</mat-label>
+            <input matInput [value]="config.dominioSeguro" (input)="actualizarConfig('dominioSeguro', $any($event.target).value)">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>URL TPV</mat-label>
+            <input matInput [value]="config.urlTPV" (input)="actualizarConfig('urlTPV', $any($event.target).value)">
+            <mat-hint *ngIf="config.urlTPV && !esHttps(config.urlTPV)" class="error-hint">⚠ Debe ser HTTPS</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>URL Hub</mat-label>
+            <input matInput [value]="config.urlHub" (input)="actualizarConfig('urlHub', $any($event.target).value)">
+            <mat-hint *ngIf="config.urlHub && !esHttps(config.urlHub)" class="error-hint">⚠ Debe ser HTTPS</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>IBAN</mat-label>
+            <input matInput [value]="config.iban" (input)="actualizarConfig('iban', $any($event.target).value)">
+            <mat-hint *ngIf="config.iban && !validarIBAN(config.iban)" class="error-hint">⚠ IBAN no válido</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Teléfono Bizum</mat-label>
+            <input matInput [value]="config.telBizum" (input)="actualizarConfig('telBizum', $any($event.target).value)">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>URL PayPal</mat-label>
+            <input matInput [value]="config.urlPayPal" (input)="actualizarConfig('urlPayPal', $any($event.target).value)">
+            <mat-hint *ngIf="config.urlPayPal && !esHttps(config.urlPayPal)" class="error-hint">⚠ Debe ser HTTPS</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email empresa</mat-label>
+            <input matInput [value]="config.emailEmpresa || ''" (input)="actualizarConfig('emailEmpresa', $any($event.target).value)">
+            <mat-hint>Se mostrará en el footer de los emails</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Teléfono empresa</mat-label>
+            <input matInput [value]="config.telefonoEmpresa || ''" (input)="actualizarConfig('telefonoEmpresa', $any($event.target).value)">
+            <mat-hint>Se mostrará en el footer de los emails</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="preview-pago">
+          <h3>Bloque de pago (preview)</h3>
+          <div class="preview-box">
+            <p *ngIf="config.urlTPV && esHttps(config.urlTPV)">• Tarjeta: {{ config.urlTPV }}</p>
+            <p *ngIf="config.telBizum">• Bizum: {{ config.telBizum }}</p>
+            <p *ngIf="config.urlPayPal && esHttps(config.urlPayPal)">• PayPal: {{ config.urlPayPal }}</p>
+            <p *ngIf="config.iban && validarIBAN(config.iban)">• Transferencia: {{ config.iban }}</p>
+            <p *ngIf="config.urlHub && esHttps(config.urlHub)">• Hub: {{ config.urlHub }}</p>
+          </div>
+
+          <div *ngIf="todosEnlacesHttps" class="alert-success">
+            ✔ Enlaces verificados como HTTPS
+          </div>
+          <div *ngIf="!todosEnlacesHttps" class="alert-warning">
+            ⚠ Revisa enlaces: usa siempre HTTPS
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

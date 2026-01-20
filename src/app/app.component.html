@@ -1,0 +1,126 @@
+<!-- Header con branding y navegación -->
+<mat-toolbar color="primary" class="app-toolbar">
+  <button
+    mat-icon-button
+    (click)="toggleSidenav()"
+    class="menu-button"
+    matTooltip="Menú"
+    aria-label="Toggle menu">
+    <mat-icon>{{ isMobile || !isCollapsed ? 'menu' : 'menu_open' }}</mat-icon>
+  </button>
+
+  <div class="toolbar-brand">
+    <mat-icon class="brand-icon">security</mat-icon>
+    <span class="brand-title">{{ title }}</span>
+  </div>
+
+  <span class="spacer"></span>
+
+  <!-- Acciones rápidas en header -->
+  <button
+    mat-icon-button
+    matTooltip="Notificaciones"
+    class="header-action">
+    <mat-icon>notifications</mat-icon>
+  </button>
+
+  <button
+    mat-icon-button
+    matTooltip="Configuración"
+    class="header-action">
+    <mat-icon>settings</mat-icon>
+  </button>
+
+  <button
+    mat-icon-button
+    [matMenuTriggerFor]="userMenu"
+    matTooltip="Perfil de usuario"
+    class="user-button">
+    <mat-icon>account_circle</mat-icon>
+  </button>
+</mat-toolbar>
+
+<!-- Contenedor principal con sidebar -->
+<mat-sidenav-container class="sidenav-container" [class.mobile]="isMobile">
+  <mat-sidenav
+    #sidenav
+    [mode]="isMobile ? 'over' : 'side'"
+    [opened]="!isMobile"
+    [fixedInViewport]="isMobile"
+    [class.collapsed]="isCollapsed && !isMobile"
+    class="app-sidenav">
+
+    <!-- Logo/Brand en sidebar -->
+    <div class="sidebar-header" *ngIf="!isCollapsed || isMobile">
+      <mat-icon class="sidebar-logo">shield</mat-icon>
+      <div class="sidebar-title">
+        <h2>Soriano</h2>
+        <p>Mediadores</p>
+      </div>
+    </div>
+
+    <!-- Navigation menu -->
+    <mat-nav-list class="nav-list">
+      <a
+        mat-list-item
+        *ngFor="let item of menuItems"
+        [routerLink]="item.path"
+        routerLinkActive="active-link"
+        (click)="closeSidenavOnMobile()"
+        [matTooltip]="isCollapsed && !isMobile ? item.tooltip : ''"
+        matTooltipPosition="right"
+        class="nav-item">
+        <mat-icon matListItemIcon class="nav-icon">{{ item.icon }}</mat-icon>
+        <span matListItemTitle class="nav-label" *ngIf="!isCollapsed || isMobile">
+          {{ item.label }}
+        </span>
+      </a>
+    </mat-nav-list>
+
+    <!-- Footer en sidebar -->
+    <div class="sidebar-footer" *ngIf="!isCollapsed || isMobile">
+      <mat-divider></mat-divider>
+      <div class="footer-content">
+        <p class="footer-text">CRM Soriano Mediadores</p>
+        <p class="footer-year">© {{ currentYear }}</p>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <!-- Contenido principal -->
+  <mat-sidenav-content class="main-content">
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+
+    <!-- Footer principal (visible en contenido) -->
+    <footer class="main-footer">
+      <div class="footer-container">
+        <div class="footer-section">
+          <p>Soriano Mediadores - Sistema CRM</p>
+          <p class="footer-small">Gestión integral de seguros</p>
+        </div>
+        <div class="footer-section">
+          <p class="footer-small">© {{ currentYear }} Todos los derechos reservados</p>
+        </div>
+      </div>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<!-- Menu dropdown de usuario -->
+<mat-menu #userMenu="matMenu">
+  <button mat-menu-item>
+    <mat-icon>person</mat-icon>
+    <span>Mi Perfil</span>
+  </button>
+  <button mat-menu-item>
+    <mat-icon>settings</mat-icon>
+    <span>Configuración</span>
+  </button>
+  <mat-divider></mat-divider>
+  <button mat-menu-item>
+    <mat-icon>logout</mat-icon>
+    <span>Cerrar Sesión</span>
+  </button>
+</mat-menu>

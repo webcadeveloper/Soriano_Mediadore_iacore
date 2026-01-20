@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorio Pago Pendiente - Soriano Mediadores</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <!-- Container Principal -->
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+
+                    <!-- Header con Logo y Barra Roja -->
+                    <tr>
+                        <td style="background-color: #ffffff; padding: 20px 40px; border-bottom: 4px solid #DC143C;">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="text-align: left; vertical-align: middle;">
+                                        <!-- Logo -->
+                                        <img src="https://i.postimg.cc/vZTKnynR/asd2.png" alt="Soriano Mediadores" style="max-width: 150px; height: auto; display: block; margin-bottom: 10px;" />
+
+                                        <h1 style="margin: 0; color: #DC143C; font-size: 26px; font-weight: 700;">
+                                            SORIANO MEDIADORES
+                                        </h1>
+                                        <p style="margin: 5px 0 0 0; color: #666666; font-size: 13px;">
+                                            Mediadores de Seguros
+                                        </p>
+                                    </td>
+                                    <td style="text-align: right; vertical-align: middle;">
+                                        <div style="background-color: #DC143C; color: #ffffff; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                            URGENTE
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Contenido Principal -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <!-- Saludo -->
+                            <h2 style="margin: 0 0 25px 0; color: #333333; font-size: 20px; font-weight: 600;">
+                                Estimado/a {{NOMBRE_CLIENTE}},
+                            </h2>
+
+                            <!-- Mensaje Principal -->
+                            <p style="margin: 0 0 20px 0; color: #555555; font-size: 15px; line-height: 1.7;">
+                                Nos ponemos en contacto con usted debido a que <strong>hemos detectado un impago</strong> en su seguro. Es importante que regularice esta situación para mantener activa su cobertura.
+                            </p>
+
+                            <!-- Caja de Información del Recibo -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 25px 0; border: 2px solid #DC143C; border-radius: 8px; overflow: hidden;">
+                                <tr>
+                                    <td style="background-color: #DC143C; padding: 15px 25px;">
+                                        <h3 style="margin: 0; color: #ffffff; font-size: 16px; font-weight: 600;">
+                                            📋 Detalles del Recibo Impagado
+                                        </h3>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="background-color: #ffffff; padding: 25px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="padding: 10px 0; vertical-align: top; width: 35%;">
+                                                    <span style="color: #666666; font-size: 13px; font-weight: 600;">Recibo Nº:</span>
+                                                </td>
+                                                <td style="padding: 10px 0; vertical-align: top;">
+                                                    <span style="color: #333333; font-size: 14px; font-weight: 700;">{{NUMERO_RECIBO}}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 0; vertical-align: top;">
+                                                    <span style="color: #666666; font-size: 13px; font-weight: 600;">Póliza Nº:</span>
+                                                </td>
+                                                <td style="padding: 10px 0; vertical-align: top;">
+                                                    <span style="color: #333333; font-size: 14px; font-weight: 700;">{{NUMERO_POLIZA}}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 0; vertical-align: top;">
+                                                    <span style="color: #666666; font-size: 13px; font-weight: 600;">Tipo de Seguro:</span>
+                                                </td>
+                                                <td style="padding: 10px 0; vertical-align: top;">
+                                                    <span style="color: #333333; font-size: 14px;">{{RAMO}}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="padding: 15px 0;">
+                                                    <div style="border-top: 1px dashed #dee2e6;"></div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 0; vertical-align: top;">
+                                                    <span style="color: #666666; font-size: 13px; font-weight: 600;">Motivo Devolución:</span>
+                                                </td>
+                                                <td style="padding: 10px 0; vertical-align: top;">
+                                                    <span style="color: #DC143C; font-size: 14px; font-weight: 600;">{{MOTIVO_DEVOLUCION}}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="padding: 20px 0 0 0;">
+                                                    <div style="background-color: #FEF5F5; padding: 20px; border-radius: 6px; text-align: center;">
+                                                        <p style="margin: 0 0 8px 0; color: #666666; font-size: 13px; font-weight: 600;">
+                                                            IMPORTE A PAGAR
+                                                        </p>
+                                                        <p style="margin: 0; color: #DC143C; font-size: 32px; font-weight: 700;">
+                                                            {{IMPORTE}}€
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Consecuencias del Impago -->
+                            <div style="background-color: #FFF3CD; border-left: 5px solid #DC143C; padding: 20px; margin: 25px 0; border-radius: 4px;">
+                                <h4 style="margin: 0 0 12px 0; color: #856404; font-size: 15px; font-weight: 700;">
+                                    ⚠️ Importante: Consecuencias del Impago
+                                </h4>
+                                <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 14px; line-height: 1.7;">
+                                    <li style="margin-bottom: 8px;">Su póliza puede quedar <strong>sin cobertura</strong></li>
+                                    <li style="margin-bottom: 8px;">No estará protegido ante posibles <strong>siniestros</strong></li>
+                                    <li style="margin-bottom: 0;">Podría generar <strong>gastos adicionales</strong> de gestión</li>
+                                </ul>
+                            </div>
+
+                            <!-- Llamada a la Acción - Opciones de Pago -->
+                            <div style="background-color: #FEF5F5; padding: 30px; border-radius: 8px; margin: 25px 0; border: 2px solid #DC143C;">
+                                <h3 style="margin: 0 0 25px 0; color: #DC143C; font-size: 20px; font-weight: 700; text-align: center;">
+                                    💳 Regularice su Situación - Opciones de Pago
+                                </h3>
+
+                                <!-- Transferencia Bancaria -->
+                                <div style="background-color: #ffffff; border: 3px solid #DC143C; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(220, 20, 60, 0.2);">
+                                    <h4 style="margin: 0 0 15px 0; color: #DC143C; font-size: 17px; font-weight: 700; text-align: center;">
+                                        🏦 Transferencia Bancaria
+                                    </h4>
+                                    <p style="margin: 0 0 12px 0; color: #666666; font-size: 14px; text-align: center;">
+                                        <strong>Número de Cuenta IBAN:</strong>
+                                    </p>
+                                    <div style="background-color: #FEF5F5; padding: 15px; border-radius: 8px; text-align: center; border: 2px dashed #DC143C;">
+                                        <p style="margin: 0; color: #DC143C; font-size: 17px; font-weight: 700; font-family: 'Courier New', monospace; letter-spacing: 1px;">
+                                            ES96 2100 1639 2902 0032 7372
+                                        </p>
+                                    </div>
+                                    <p style="margin: 15px 0 0 0; color: #666666; font-size: 13px; text-align: center;">
+                                        <strong>Concepto:</strong> Recibo {{NUMERO_RECIBO}} - {{NOMBRE_CLIENTE}}
+                                    </p>
+                                </div>
+
+                                <!-- Botón Bizum -->
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 15px;">
+                                    <tr>
+                                        <td align="center">
+                                            <a href="tel:+34659022007" style="display: inline-block; background: linear-gradient(135deg, #00A9E0 0%, #0080B0 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 169, 224, 0.3);">
+                                                💸 Pagar por Bizum
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p style="margin: 0 0 25px 0; color: #666666; font-size: 14px; text-align: center;">
+                                    Bizum al <strong style="color: #00A9E0; font-size: 16px;">+34 659 02 20 07</strong>
+                                </p>
+
+                                <!-- Botón WhatsApp -->
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 15px;">
+                                    <tr>
+                                        <td align="center">
+                                            <a href="https://wa.me/34659022007?text=Hola,%20necesito%20regularizar%20el%20recibo%20{{NUMERO_RECIBO}}" style="display: inline-block; background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">
+                                                💬 WhatsApp
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p style="margin: 0; color: #666666; font-size: 14px; text-align: center;">
+                                    Contacto WhatsApp: <strong style="color: #25D366; font-size: 16px;">+34 659 02 20 07</strong>
+                                </p>
+                            </div>
+
+                            <!-- Mensaje de Cierre -->
+                            <p style="margin: 30px 0 0 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                                Quedamos a su disposición para cualquier aclaración.<br>
+                                <strong style="color: #333333;">Gracias por su confianza.</strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #DC143C 0%, #B71C1C 100%); padding: 25px 40px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <h3 style="margin: 0 0 10px 0; color: #ffffff; font-size: 18px; font-weight: 700;">
+                                            SORIANO MEDIADORES
+                                        </h3>
+                                        <p style="margin: 0 0 15px 0; color: #ffffff; font-size: 13px; opacity: 0.9;">
+                                            📧 direccion@sorianomediadores.es
+                                        </p>
+                                        <p style="margin: 0; color: #ffffff; font-size: 11px; opacity: 0.7; line-height: 1.5;">
+                                            Este correo es informativo. Si desea dejar de recibir comunicaciones, contáctenos.<br>
+                                            © 2026 Soriano Mediadores - Todos los derechos reservados
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

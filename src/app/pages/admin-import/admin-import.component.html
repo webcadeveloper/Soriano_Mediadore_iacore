@@ -1,0 +1,599 @@
+<div class="import-container">
+  <!-- Global Loading Overlay -->
+  <div *ngIf="isLoadingPreview" class="global-loading-overlay">
+    <div class="loading-content">
+      <mat-spinner diameter="80" color="primary"></mat-spinner>
+      <p class="loading-text">Cargando y validando archivo...</p>
+      <p class="loading-subtext">Esto puede tomar unos segundos para archivos grandes</p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="import-header">
+    <div class="header-content">
+      <h1 class="import-title">
+        <mat-icon>upload_file</mat-icon>
+        Importación de Datos
+      </h1>
+      <p class="import-subtitle">Importa archivos CSV de Occident para actualizar la base de datos</p>
+    </div>
+  </div>
+
+  <!-- Main Content with Tabs -->
+  <mat-tab-group class="import-tabs" [(selectedIndex)]="currentStep" (selectedIndexChange)="goToStep($event)">
+
+    <!-- STEP 1: Select File Type -->
+    <mat-tab label="Tipo de Archivo">
+      <div class="tab-content">
+        <mat-card class="type-selection-card">
+          <div class="upload-header">
+            <mat-icon>category</mat-icon>
+            <h2>Selecciona el tipo de archivo que vas a importar</h2>
+            <p class="required-notice">⚠️ Primero selecciona el tipo de archivo para validar que el CSV sea correcto</p>
+          </div>
+
+          <div class="type-selection-grid">
+            <mat-card
+              *ngFor="let type of [ImportType.CLIENTES, ImportType.POLIZAS, ImportType.RECIBOS, ImportType.SINIESTROS]"
+              class="type-selection-item"
+              [class.selected]="importConfig.type === type"
+              (click)="selectImportType(type)">
+              <mat-icon class="type-icon">{{ ImportTypeDescriptions[type].icon }}</mat-icon>
+              <h3>{{ ImportTypeDescriptions[type].title }}</h3>
+              <p>{{ ImportTypeDescriptions[type].description }}</p>
+              <mat-chip *ngIf="importConfig.type === type" class="selected-chip">Seleccionado</mat-chip>
+            </mat-card>
+          </div>
+
+          <div class="type-actions" *ngIf="importConfig.type">
+            <mat-card class="type-info-card">
+              <h3>📄 Archivo esperado</h3>
+              <p class="file-name-example">{{ getExpectedFileName() }}</p>
+              <p class="columns-info">El archivo debe contener las siguientes columnas obligatorias:</p>
+              <mat-chip-set class="columns-chips">
+                <mat-chip *ngFor="let col of getRequiredColumns()">{{ col }}</mat-chip>
+              </mat-chip-set>
+            </mat-card>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="currentStep = 1"
+              class="continue-button">
+              <mat-icon>arrow_forward</mat-icon>
+              Continuar a Cargar Archivo
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- STEP 2: Upload File -->
+    <mat-tab label="Cargar Archivo" [disabled]="!importConfig.type">
+      <div class="tab-content">
+        <mat-card class="upload-card">
+          <div class="upload-header">
+            <mat-icon>cloud_upload</mat-icon>
+            <h2>Sube el archivo {{ ImportTypeDescriptions[importConfig.type]?.title }}</h2>
+            <p>Tipo seleccionado: <strong>{{ ImportTypeDescriptions[importConfig.type]?.title }}</strong></p>
+          </div>
+
+          <!-- File selected state -->
+          <div *ngIf="selectedFile" class="file-selected">
+            <div class="file-info">
+              <mat-icon class="file-icon">description</mat-icon>
+              <div class="file-details">
+                <h3>{{ selectedFile.name }}</h3>
+                <p>{{ formatFileSize(selectedFile.size) }}</p>
+              </div>
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="removeFile()"
+                matTooltip="Eliminar archivo">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="file-actions">
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="currentStep = 1"
+                [disabled]="isLoadingPreview">
+                <mat-icon>arrow_forward</mat-icon>
+                Continuar
+              </button>
+            </div>
+          </div>
+
+          <!-- Drag & Drop Area -->
+          <div *ngIf="!selectedFile">
+            <div
+              class="drop-zone"
+              [class.dragging]="isDragging"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)"
+              (click)="fileInput.click()">
+
+              <mat-icon class="drop-icon">cloud_upload</mat-icon>
+              <h3>Arrastra tu archivo CSV aquí</h3>
+              <p>o</p>
+              <button mat-raised-button color="primary" type="button">
+                <mat-icon>folder_open</mat-icon>
+                Seleccionar archivo
+              </button>
+              <p class="drop-hint">Formatos aceptados: .csv (máx. 100MB)</p>
+
+              <input
+                #fileInput
+                type="file"
+                accept=".csv"
+                (change)="onFileSelected($event)"
+                hidden>
+            </div>
+
+            <mat-divider style="margin: 24px 0;"></mat-divider>
+
+            <!-- Paste CSV Area -->
+            <div class="paste-zone">
+              <div class="paste-header">
+                <mat-icon>content_paste</mat-icon>
+                <h3>O pega aquí el contenido CSV</h3>
+                <p class="paste-hint">Puedes copiar datos desde Excel/Google Sheets y pegarlos directamente</p>
+              </div>
+
+              <textarea
+                #csvTextArea
+                class="csv-textarea"
+                placeholder="Pega aquí el contenido CSV (separado por punto y coma)...&#10;&#10;Ejemplo:&#10;cliente;nif;poliza;num_recibo;venc;importe;motivo;tel;email&#10;Juan García;12345678A;POL-001;RCB-001;2025-01-15;150.50;R01;600123456;juan@ejemplo.es"
+                [(ngModel)]="pastedCsv"></textarea>
+
+              <div class="paste-actions">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  [disabled]="!pastedCsv || !pastedCsv.trim()"
+                  (click)="processPastedCsv()">
+                  <mat-icon>upload</mat-icon>
+                  Procesar CSV pegado
+                </button>
+                <button
+                  mat-button
+                  [disabled]="!pastedCsv || !pastedCsv.trim()"
+                  (click)="pastedCsv = ''">
+                  <mat-icon>clear</mat-icon>
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading indicator while processing file -->
+          <div *ngIf="isLoadingPreview" class="loading-overlay">
+            <mat-spinner diameter="60"></mat-spinner>
+            <p class="loading-text">Cargando y validando archivo...</p>
+            <p class="loading-subtext">Esto puede tomar unos segundos para archivos grandes</p>
+          </div>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- STEP 3: Configure Import -->
+    <mat-tab label="Configuración" [disabled]="!selectedFile">
+      <div class="tab-content">
+        <mat-card class="config-card">
+          <div class="config-header">
+            <mat-icon>settings</mat-icon>
+            <h2>Configurar importación</h2>
+          </div>
+
+          <div class="config-form">
+            <!-- Import Type -->
+            <div class="form-section">
+              <h3>Tipo de datos</h3>
+              <mat-radio-group [(ngModel)]="importConfig.type" class="radio-group">
+                <mat-radio-button
+                  *ngFor="let type of [ImportType.CLIENTES, ImportType.POLIZAS, ImportType.RECIBOS, ImportType.SINIESTROS]"
+                  [value]="type"
+                  class="radio-option">
+                  <div class="radio-content">
+                    <mat-icon>{{ ImportTypeDescriptions[type].icon }}</mat-icon>
+                    <div class="radio-text">
+                      <strong>{{ ImportTypeDescriptions[type].title }}</strong>
+                      <span>{{ ImportTypeDescriptions[type].description }}</span>
+                    </div>
+                  </div>
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Import Mode -->
+            <div class="form-section">
+              <h3>Modo de importación</h3>
+              <mat-radio-group [(ngModel)]="importConfig.mode" class="radio-group">
+                <mat-radio-button [value]="ImportMode.ADD" class="radio-option">
+                  <div class="radio-content">
+                    <mat-icon>add_circle</mat-icon>
+                    <div class="radio-text">
+                      <strong>Añadir nuevos registros</strong>
+                      <span>Solo se importarán registros que no existan en la base de datos</span>
+                    </div>
+                  </div>
+                </mat-radio-button>
+                <mat-radio-button [value]="ImportMode.REPLACE" class="radio-option">
+                  <div class="radio-content">
+                    <mat-icon>sync</mat-icon>
+                    <div class="radio-text">
+                      <strong>Actualizar existentes</strong>
+                      <span>Los registros existentes serán actualizados con los nuevos datos</span>
+                    </div>
+                  </div>
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Options -->
+            <div class="form-section">
+              <h3>Opciones avanzadas</h3>
+
+              <mat-checkbox [(ngModel)]="importConfig.validateBeforeImport" class="checkbox-option">
+                <div class="checkbox-content">
+                  <strong>Validar datos antes de importar</strong>
+                  <span>Verifica la integridad de los datos antes de procesarlos</span>
+                </div>
+              </mat-checkbox>
+
+              <div class="form-field">
+                <label>Manejo de duplicados:</label>
+                <mat-radio-group [(ngModel)]="importConfig.handleDuplicates" class="inline-radio-group">
+                  <mat-radio-button value="skip">Omitir</mat-radio-button>
+                  <mat-radio-button value="update">Actualizar</mat-radio-button>
+                  <mat-radio-button value="error">Marcar error</mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </div>
+          </div>
+
+          <div class="config-actions">
+            <button mat-button (click)="currentStep = 0">
+              <mat-icon>arrow_back</mat-icon>
+              Atrás
+            </button>
+            <button
+              mat-raised-button
+              color="accent"
+              (click)="startImport()"
+              matTooltip="Importar sin vista previa (archivos grandes)"
+              [disabled]="!selectedFile || !importConfig.type">
+              <mat-icon>fast_forward</mat-icon>
+              Importar directamente
+            </button>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="currentStep = 2"
+              [disabled]="!selectedFile">
+              <mat-icon>arrow_forward</mat-icon>
+              Ver vista previa
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- STEP 3: Preview Data -->
+    <mat-tab label="Vista Previa" [disabled]="!csvPreview">
+      <div class="tab-content">
+        <mat-card class="preview-card">
+          <div class="preview-header">
+            <mat-icon>preview</mat-icon>
+            <h2>Vista previa del archivo</h2>
+            <div class="preview-info" *ngIf="csvPreview">
+              <mat-chip>
+                <mat-icon>description</mat-icon>
+                {{ csvPreview.fileName }}
+              </mat-chip>
+              <mat-chip>
+                <mat-icon>table_rows</mat-icon>
+                {{ csvPreview.totalRows }} filas
+              </mat-chip>
+              <mat-chip>
+                <mat-icon>storage</mat-icon>
+                {{ formatFileSize(csvPreview.fileSize) }}
+              </mat-chip>
+            </div>
+          </div>
+
+          <!-- Loading state -->
+          <div *ngIf="isLoadingPreview" class="loading-container">
+            <mat-spinner></mat-spinner>
+            <p>Cargando vista previa...</p>
+          </div>
+
+          <!-- Preview table -->
+          <div *ngIf="csvPreview && !isLoadingPreview" class="preview-table-wrapper">
+            <p class="preview-note">Mostrando las primeras 10 filas del archivo</p>
+
+            <div class="table-container">
+              <table class="preview-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th *ngFor="let header of csvPreview.headers">{{ header }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of csvPreview.rows.slice(0, 10); let i = index">
+                    <td class="row-number">{{ i + 1 }}</td>
+                    <td *ngFor="let cell of row">{{ cell }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="preview-actions">
+            <button mat-button (click)="currentStep = 1">
+              <mat-icon>arrow_back</mat-icon>
+              Atrás
+            </button>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="startImport()"
+              [disabled]="isLoadingPreview">
+              <mat-icon>play_arrow</mat-icon>
+              Iniciar importación
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- STEP 4: Processing -->
+    <mat-tab label="Procesando" [disabled]="!isImporting && !currentImport">
+      <div class="tab-content">
+        <mat-card class="process-card" *ngIf="currentImport">
+          <div class="process-header">
+            <mat-icon [class]="'status-icon ' + getStatusColor(currentImport.status)">
+              {{ getStatusIcon(currentImport.status) }}
+            </mat-icon>
+            <h2>{{ currentImport.status === ImportStatus.PROCESSING ? 'Procesando importación' :
+                    currentImport.status === ImportStatus.VALIDATING ? 'Validando datos' :
+                    currentImport.status === ImportStatus.COMPLETED ? 'Importación completada' :
+                    currentImport.status === ImportStatus.ERROR ? 'Error en la importación' :
+                    'Importación cancelada' }}</h2>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="progress-section" *ngIf="isImporting">
+            <mat-progress-bar
+              mode="determinate"
+              [value]="currentImport.progress"
+              color="primary">
+            </mat-progress-bar>
+            <div class="progress-info">
+              <span>{{ currentImport.progress }}%</span>
+              <span>{{ currentImport.stats.processedRows }} / {{ currentImport.stats.totalRows }} filas</span>
+            </div>
+          </div>
+
+          <!-- Statistics -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <mat-icon>check_circle</mat-icon>
+              <div class="stat-content">
+                <h3>{{ currentImport.stats.successfulRows }}</h3>
+                <p>Importados</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <mat-icon>error</mat-icon>
+              <div class="stat-content">
+                <h3>{{ currentImport.stats.errorRows }}</h3>
+                <p>Errores</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <mat-icon>content_copy</mat-icon>
+              <div class="stat-content">
+                <h3>{{ currentImport.stats.duplicateRows }}</h3>
+                <p>Duplicados</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <mat-icon>skip_next</mat-icon>
+              <div class="stat-content">
+                <h3>{{ currentImport.stats.skippedRows }}</h3>
+                <p>Omitidos</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Errors list -->
+          <div class="errors-section" *ngIf="currentImport.errors && currentImport.errors.length > 0">
+            <h3>Errores encontrados ({{ currentImport.errors.length }})</h3>
+            <div class="errors-list">
+              <div class="error-item" *ngFor="let error of currentImport.errors.slice(0, 5)">
+                <mat-icon>warning</mat-icon>
+                <div class="error-details">
+                  <strong>Fila {{ error.row }}, Campo: {{ error.field }}</strong>
+                  <p>{{ error.message }}</p>
+                </div>
+              </div>
+            </div>
+            <p class="errors-note" *ngIf="currentImport.errors.length > 5">
+              Mostrando 5 de {{ currentImport.errors.length }} errores
+            </p>
+          </div>
+
+          <!-- Message -->
+          <div class="process-message" *ngIf="currentImport.message">
+            <mat-icon>info</mat-icon>
+            <p>{{ currentImport.message }}</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="process-actions">
+            <button
+              *ngIf="isImporting"
+              mat-raised-button
+              color="warn"
+              (click)="cancelImport()">
+              <mat-icon>cancel</mat-icon>
+              Cancelar importación
+            </button>
+
+            <button
+              *ngIf="!isImporting && currentImport.status === ImportStatus.COMPLETED"
+              mat-raised-button
+              color="primary"
+              (click)="resetImport()">
+              <mat-icon>refresh</mat-icon>
+              Nueva importación
+            </button>
+
+            <button
+              *ngIf="!isImporting && currentImport.errors && currentImport.errors.length > 0"
+              mat-raised-button
+              (click)="generateErrorReport(currentImport.errors, selectedFile?.name || 'import')">
+              <mat-icon>download</mat-icon>
+              Descargar reporte de errores
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- STEP 5: History -->
+    <mat-tab label="Historial">
+      <div class="tab-content">
+        <mat-card class="history-card">
+          <div class="history-header">
+            <div class="header-left">
+              <mat-icon>history</mat-icon>
+              <h2>Historial de importaciones</h2>
+            </div>
+            <button mat-icon-button (click)="loadHistory()" matTooltip="Actualizar">
+              <mat-icon>refresh</mat-icon>
+            </button>
+          </div>
+
+          <!-- Loading state -->
+          <div *ngIf="isLoadingHistory" class="loading-container">
+            <mat-spinner></mat-spinner>
+            <p>Cargando historial...</p>
+          </div>
+
+          <!-- History table -->
+          <div *ngIf="!isLoadingHistory && importHistory.length > 0" class="history-table-wrapper">
+            <table mat-table [dataSource]="importHistory" class="history-table">
+
+              <!-- File Name -->
+              <ng-container matColumnDef="fileName">
+                <th mat-header-cell *matHeaderCellDef>Archivo</th>
+                <td mat-cell *matCellDef="let item">
+                  <div class="file-cell">
+                    <mat-icon>description</mat-icon>
+                    <div>
+                      <strong>{{ item.fileName }}</strong>
+                      <small>{{ formatFileSize(item.fileSize) }}</small>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Type -->
+              <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef>Tipo</th>
+                <td mat-cell *matCellDef="let item">
+                  <mat-chip class="type-chip">
+                    <mat-icon>{{ getTypeDescription(item.type).icon }}</mat-icon>
+                    {{ getTypeDescription(item.type).title }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <!-- User -->
+              <ng-container matColumnDef="userName">
+                <th mat-header-cell *matHeaderCellDef>Usuario</th>
+                <td mat-cell *matCellDef="let item">{{ item.userName }}</td>
+              </ng-container>
+
+              <!-- Stats -->
+              <ng-container matColumnDef="stats">
+                <th mat-header-cell *matHeaderCellDef>Resultados</th>
+                <td mat-cell *matCellDef="let item">
+                  <div class="stats-cell">
+                    <span class="stat-badge success">{{ item.stats.successfulRows }} OK</span>
+                    <span class="stat-badge error" *ngIf="item.stats.errorRows > 0">
+                      {{ item.stats.errorRows }} Errores
+                    </span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Status -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let item">
+                  <mat-chip [class]="'status-chip ' + getStatusColor(item.status)">
+                    <mat-icon>{{ getStatusIcon(item.status) }}</mat-icon>
+                    {{ item.status }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <!-- Date -->
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                <td mat-cell *matCellDef="let item">
+                  {{ item.startTime | date:'short' }}
+                </td>
+              </ng-container>
+
+              <!-- Actions -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td mat-cell *matCellDef="let item">
+                  <button
+                    mat-icon-button
+                    *ngIf="item.errors && item.errors.length > 0"
+                    (click)="downloadErrorReport(item.id)"
+                    matTooltip="Descargar errores">
+                    <mat-icon>download</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    *ngIf="item.canRevert"
+                    (click)="revertImport(item.id)"
+                    matTooltip="Revertir importación"
+                    color="warn">
+                    <mat-icon>undo</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="historyDisplayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: historyDisplayedColumns;"></tr>
+            </table>
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="!isLoadingHistory && importHistory.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <h3>No hay importaciones previas</h3>
+            <p>El historial de importaciones aparecerá aquí</p>
+          </div>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
