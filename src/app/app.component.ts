@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnDestroy } from '@angular/core';
+import { Component, ViewChild, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -13,6 +13,8 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { AuthService, User } from './core/services/auth.service';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { SkipNavigationComponent } from './shared/components/skip-navigation/skip-navigation.component';
+import { PwaUpdateService } from './core/services/pwa-update.service';
+import { MetaTagsService } from './core/services/meta-tags.service';
 
 @Component({
   selector: 'app-root',
@@ -35,7 +37,7 @@ import { SkipNavigationComponent } from './shared/components/skip-navigation/ski
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnDestroy {
+export class AppComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @ViewChild('sidenav') sidenav!: MatSidenav;
@@ -61,7 +63,9 @@ export class AppComponent implements OnDestroy {
   constructor(
     private breakpointObserver: BreakpointObserver,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private pwaUpdateService: PwaUpdateService,
+    private metaTagsService: MetaTagsService
   ) {
     this.currentUser$ = this.authService.currentUser$;
     this.isAuthenticated$ = this.authService.isAuthenticated$;
@@ -74,6 +78,29 @@ export class AppComponent implements OnDestroy {
           this.isCollapsed = false;
         }
       });
+  }
+
+  ngOnInit(): void {
+    // Inicializar PWA service worker
+    this.pwaUpdateService.checkForUpdates();
+    this.pwaUpdateService.listenForUpdates();
+    this.pwaUpdateService.handleUnrecoverableState();
+
+    // Configurar SEO y structured data
+    this.initializeSEO();
+  }
+
+  private initializeSEO(): void {
+    // Añadir structured data de Organization
+    const organizationData = this.metaTagsService.createOrganizationStructuredData();
+    this.metaTagsService.addStructuredData(organizationData);
+
+    // Añadir structured data de WebApplication
+    const webAppData = this.metaTagsService.createWebApplicationStructuredData();
+
+    // Combinar ambos en un array para JSON-LD
+    const combinedData = [organizationData, webAppData];
+    this.metaTagsService.addStructuredData(combinedData);
   }
 
   ngOnDestroy(): void {
