@@ -129,6 +129,12 @@ func main() {
 	log.Println("   GET  /api/stats/recibos-devueltos - Recibos devueltos (con paginación)")
 	log.Println("   GET  /api/stats/clientes-deuda  - Clientes con deuda (con paginación)")
 	log.Println("   GET  /api/stats/recibos-kpi     - KPIs completos + historial de recibos (con filtros)")
+	log.Println("\n📈 Business Intelligence:")
+	log.Println("   GET  /api/analytics/financial-kpis        - KPIs financieros (primas, comisiones, pocket share)")
+	log.Println("   GET  /api/analytics/portfolio-analysis    - Análisis de cartera (por ramo, provincia, top clientes)")
+	log.Println("   GET  /api/analytics/collections-performance - Rendimiento cobros (morosidad, ratios)")
+	log.Println("   GET  /api/analytics/claims-analysis       - Análisis siniestros (siniestralidad por ramo)")
+	log.Println("   GET  /api/analytics/performance-trends    - Tendencias de rendimiento (clientes, pólizas, primas)")
 	log.Println("\n🔄 Scraper GCO:")
 	log.Println("   POST /api/scraper/run           - Ejecutar scraper manualmente")
 	log.Println("   GET  /api/scraper/status        - Estado del scraper")
@@ -223,6 +229,14 @@ func setupRoutes(app *fiber.App) {
 	v1.Get("/stats/recibos-devueltos", api.GetRecibosDevueltos)
 	v1.Get("/stats/clientes-deuda", api.GetClientesConDeuda)
 	v1.Get("/stats/recibos-kpi", api.GetRecibosKPI) // KPIs completos + historial
+
+	// Analytics - Business Intelligence
+	analytics := v1.Group("/analytics")
+	analytics.Get("/financial-kpis", api.GetFinancialKPIs)
+	analytics.Get("/portfolio-analysis", api.GetPortfolioAnalysis)
+	analytics.Get("/collections-performance", api.GetCollectionsPerformance)
+	analytics.Get("/claims-analysis", api.GetClaimsAnalysis)
+	analytics.Get("/performance-trends", api.GetPerformanceTrends)
 
 	// Scraper GCO
 	scraper.RegisterScraperRoutes(app)
