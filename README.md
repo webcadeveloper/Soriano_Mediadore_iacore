@@ -1,452 +1,245 @@
-# Soriano Mediadores - Sistema CRM
+# Soriano Mediadores - Sistema de Gestión
 
-Sistema CRM moderno y seguro para la gestión integral de mediadores de seguros, desarrollado con Angular 18.2.21 y Material Design.
+Monorepo unificado del sistema de gestión de Soriano Mediadores, incluyendo frontend Angular y backend Go.
 
-## 🚀 Características Principales
+## Estructura del Proyecto
 
-### Seguridad
-- ✅ Autenticación JWT con refresh tokens
-- ✅ Cifrado end-to-end de datos sensibles
-- ✅ Validación XSS y sanitización HTML
-- ✅ Guards de autenticación y roles
-- ✅ Interceptores HTTP seguros
-- ✅ Almacenamiento cifrado (SecureStorageService)
+```
+soriano/
+├── frontend/          # Aplicación Angular 18
+│   ├── src/          # Código fuente
+│   ├── public/       # Recursos estáticos
+│   └── dist/         # Build de producción
+├── backend/           # API Server en Go
+│   ├── cmd/          # Puntos de entrada
+│   ├── internal/     # Lógica del negocio
+│   └── migrations/   # Migraciones de BD
+└── logs/             # Logs de aplicación
+```
 
-### Accesibilidad (WCAG 2.1 Level AA)
-- ✅ Skip navigation links
-- ✅ ARIA labels completos
-- ✅ Navegación por teclado
-- ✅ Lectores de pantalla (NVDA, JAWS, VoiceOver)
-- ✅ Anuncios contextuales
-- ✅ Focus management
+## Frontend (Angular 18)
 
-### Testing
-- ✅ Suite completa de tests unitarios (165+ tests)
-- ✅ Cobertura de servicios, guards e interceptors
-- ✅ Tests de accesibilidad
-- ✅ Jasmine/Karma configurado
+### Características
+- ✅ Angular 18 con standalone components
+- ✅ Autenticación Microsoft OAuth via backend
+- ✅ Material Design
+- ✅ Progressive Web App (PWA)
+- ✅ MockInterceptor para desarrollo sin backend
+- ✅ Lazy loading de módulos
+- ✅ Accesibilidad (WCAG 2.1 AA)
 
-### Arquitectura
-- ✅ Lazy loading en todas las rutas
-- ✅ Preloading selectivo inteligente
-- ✅ Barrel exports para importaciones limpias
-- ✅ Standalone components (Angular 18)
-- ✅ Estructura modular escalable
-
-### UI/UX
-- ✅ Material Design 3
-- ✅ Paleta de colores personalizada (rojo semioscuro #8b4049)
-- ✅ Fondo blanco con grises optimizados
-- ✅ Tipografía mejorada y legible
-- ✅ Contraste WCAG AA+
-- ✅ Animaciones suaves
-
-### PWA (Progressive Web App)
-- ✅ Instalable en dispositivos móviles y desktop
-- ✅ Service Worker para funcionalidad offline
-- ✅ Caché inteligente con estrategias freshness/performance
-- ✅ Actualizaciones automáticas cada 6 horas
-- ✅ Manifest completo con iconos y shortcuts
-- ✅ Theme color integrado (#8b4049)
-- ✅ Apple Touch Icons y Windows tiles
-
-### SEO
-- ✅ Meta tags dinámicos por página
-- ✅ Open Graph y Twitter Cards
-- ✅ Structured data JSON-LD (Organization, WebApplication)
-- ✅ Canonical URLs automáticas
-- ✅ robots.txt y sitemap.xml
-- ✅ Optimización para motores de búsqueda
-
-### Features Avanzadas
-- ✅ Sistema de notificaciones toast y persistentes
-- ✅ Búsqueda global inteligente con historial
-- ✅ Exportación de datos (CSV, JSON, Excel)
-- ✅ Impresión formateada de datos
-- ✅ Gestión de historial de búsquedas
-- ✅ Notificaciones con acciones personalizables
-
-## 📦 Tecnologías
-
-- **Framework**: Angular 18.2.21
-- **UI Library**: Angular Material 18
-- **Lenguaje**: TypeScript 5.5
-- **Testing**: Jasmine + Karma
-- **Build**: Angular CLI + esbuild
-- **Estilos**: SCSS + CSS Variables
-- **PWA**: @angular/service-worker 18.2.14
-- **SEO**: Meta Tags dinámicos + JSON-LD
-
-## 🛠️ Instalación y Configuración
-
-### Frontend (Angular)
+### Setup Frontend
 
 ```bash
-# Instalar dependencias
+cd frontend
 npm install
-
-# Servidor de desarrollo
 npm start
-# Aplicación disponible en http://localhost:4200
+```
 
-# Build de producción
+La aplicación estará disponible en `http://localhost:4200`
+
+### Build Frontend
+
+```bash
+cd frontend
 npm run build
-
-# Ejecutar tests
-npm test
 ```
 
-### Backend (Go + PostgreSQL)
+Los archivos compilados estarán en `frontend/dist/`
 
-El backend está en `/workspaces/Soriano_Backend/` y ya está **compilado y listo**.
+Para más detalles, consulta [frontend/README.md](frontend/README.md)
 
-**Paso 1: Configurar la base de datos**
+## Backend (Go + PostgreSQL)
+
+### Características
+- ✅ API RESTful en Go
+- ✅ Autenticación Microsoft OAuth 2.0
+- ✅ PostgreSQL para datos principales
+- ✅ MongoDB para logs y analytics
+- ✅ Redis para cache y sesiones
+- ✅ Integración con Groq AI
+- ✅ Scraper automatizado
+- ✅ Sistema de bots (cobranza, auditoría, siniestros)
+
+### Tecnologías Backend
+- **Framework**: Gin (HTTP)
+- **Base de datos**: PostgreSQL 14+
+- **Cache**: Redis
+- **Analytics**: MongoDB
+- **AI**: Groq API
+- **Auth**: Microsoft Graph API
+
+### Setup Backend
+
+1. **Configurar variables de entorno**
+
+Crea un archivo `backend/.env`:
+
+```env
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=tu_password
+DB_NAME=soriano_mediadores
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# MongoDB
+MONGO_URI=mongodb://localhost:27017
+MONGO_DB=soriano_logs
+
+# Microsoft OAuth
+MICROSOFT_CLIENT_ID=tu_client_id
+MICROSOFT_CLIENT_SECRET=tu_client_secret
+MICROSOFT_TENANT_ID=tu_tenant_id
+MICROSOFT_REDIRECT_URI=http://localhost:8080/auth/callback
+
+# Groq AI
+GROQ_API_KEY=tu_groq_api_key
+
+# Server
+PORT=8080
+ENV=development
+```
+
+2. **Instalar dependencias**
 
 ```bash
-# Crear la base de datos (requiere permisos sudo)
-sudo -u postgres psql < /workspaces/Soriano_Backend/setup_db.sql
+cd backend
+go mod download
 ```
 
-**Paso 2: Iniciar el backend**
+3. **Ejecutar migraciones**
 
 ```bash
-cd /workspaces/Soriano_Backend
-./soriano-backend
+psql -U postgres -d soriano_mediadores -f migrations/001_initial_schema.sql
+psql -U postgres -d soriano_mediadores -f migrations/002_add_indexes.sql
+psql -U postgres -d soriano_mediadores -f migrations/003_add_bots.sql
+psql -U postgres -d soriano_mediadores -f migrations/004_create_import_jobs.sql
 ```
 
-El backend estará disponible en: **http://localhost:8080**
-
-**Verificar estado del backend:**
-```bash
-curl http://localhost:8080/health
-```
-
-### Modo sin Backend
-
-Si no puedes configurar la base de datos, la aplicación funciona automáticamente con **datos mock**. El `MockInterceptor` detecta si el backend está disponible:
-- ✅ Backend disponible → usa datos reales
-- ✅ Backend no disponible → usa datos mock automáticamente
-
-Ver más detalles en [`/workspaces/Soriano_Backend/README.md`](../Soriano_Backend/README.md)
-
-## 📁 Estructura del Proyecto
-
-```
-src/
-├── app/
-│   ├── core/                    # Módulo core (servicios, guards, interceptors)
-│   │   ├── guards/             # Guards de autenticación y roles
-│   │   ├── interceptors/       # HTTP interceptors
-│   │   ├── services/           # Servicios singleton
-│   │   └── strategies/         # Estrategias de preloading
-│   ├── pages/                   # Componentes de páginas
-│   │   ├── login/
-│   │   ├── dashboard/
-│   │   ├── clientes/
-│   │   ├── recobros/
-│   │   └── ...
-│   ├── shared/                  # Componentes y utilidades compartidas
-│   │   └── components/
-│   ├── app.component.*          # Componente raíz
-│   └── app.routes.ts            # Configuración de rutas
-├── styles.scss                  # Estilos globales
-├── theme.scss                   # Tema Material personalizado
-└── environments/                # Variables de entorno
-```
-
-## 🔐 Credenciales Demo
-
-El sistema incluye usuarios demo para testing:
-
-| Usuario | Contraseña | Rol |
-|---------|------------|-----|
-| admin | admin123 | Administrador |
-| agente | agente123 | Agente |
-| supervisor | supervisor123 | Supervisor |
-| director | director123 | Director |
-| auditor | auditor123 | Auditor |
-
-## 🎨 Sistema de Diseño
-
-### Paleta de Colores
-
-```scss
-// Primario (Rojo Semioscuro)
---primary-color: #8b4049
---primary-light: #a8545e
---primary-dark: #6d323a
-
-// Fondos
---background-color: #ffffff
---surface-color: #ffffff
-
-// Grises
---gray-900: #2c2c2c  // Texto primario
---gray-600: #757575  // Texto secundario
---gray-300: #e0e0e0  // Bordes
---gray-100: #f5f5f5  // Fondos alternativos
-```
-
-### Tipografía
-
-- **Font Family**: Roboto, "Helvetica Neue", sans-serif
-- **Headlines**: 700-600 weight, 2.5rem a 1rem
-- **Body**: 400 weight, 1rem y 0.875rem
-- **Line Height**: 1.5 para body, 1.2 para headlines
-
-## 🔒 Seguridad
-
-### Autenticación
-- JWT con expiración configurable
-- Refresh tokens automáticos
-- Logout seguro con limpieza de sesión
-- Guards para protección de rutas
-
-### Cifrado
-- AES-256 para datos sensibles
-- Almacenamiento cifrado en localStorage
-- Sanitización de inputs
-- Validación de archivos
-
-### Prevención de Vulnerabilidades
-- XSS protection
-- CSRF tokens
-- Validación server-side
-- Sanitización HTML
-- Input validation
-
-## 📊 Performance
-
-### Bundle Size
-- **Initial**: ~796 KB (179 KB gzipped)
-- **Lazy chunks**: 10-127 KB cada uno
-- **Styles**: 97.78 KB (9.50 KB gzipped)
-
-### Optimizaciones
-- Lazy loading en todas las rutas
-- Preloading selectivo inteligente
-- Tree shaking automático
-- Minificación y compresión
-- OnPush change detection
-
-## 🧪 Testing
+4. **Compilar y ejecutar**
 
 ```bash
-# Ejecutar todos los tests
-npm test
-
-# Tests con cobertura
-npm run test:coverage
-
-# Tests en modo watch
-npm run test:watch
+go build -o soriano-api ./cmd/server
+./soriano-api
 ```
 
-### Cobertura
-- **Servicios**: 9 archivos, 165+ tests
-- **Guards**: 2 archivos, 30+ tests
-- **Interceptors**: 2 archivos, 40+ tests
-- **Total**: ~165 tests unitarios
+El servidor estará disponible en `http://localhost:8080`
 
-## 📱 Responsive
+### Endpoints Principales
 
-- ✅ Desktop (1920px+)
-- ✅ Laptop (1024px-1919px)
-- ✅ Tablet (768px-1023px)
-- ✅ Mobile (320px-767px)
+- `GET /health` - Health check
+- `GET /auth/login` - Iniciar sesión con Microsoft
+- `GET /auth/callback` - Callback de Microsoft OAuth
+- `GET /auth/me` - Obtener usuario autenticado
+- `POST /auth/logout` - Cerrar sesión
+- `GET /api/stats` - Estadísticas generales
+- `GET /api/clientes` - Listar clientes
+- `GET /api/recobros` - Listar recobros
+- `GET /api/bots` - Listar bots activos
+- `POST /api/import` - Importar datos CSV
 
-## ♿ Accesibilidad
+## Desarrollo
 
-### Cumplimiento WCAG 2.1
-- **Level AA** cumplido
-- Contraste mínimo 4.5:1 para texto normal
-- Contraste mínimo 3:1 para texto grande
-- Navegación completa por teclado
-- Skip links funcionales
+### Requisitos
+- Node.js 18+
+- Go 1.21+
+- PostgreSQL 14+
+- Redis 7+
+- MongoDB 6+
 
-### Herramientas Compatibles
-- NVDA (Windows)
-- JAWS (Windows)
-- VoiceOver (macOS/iOS)
-- TalkBack (Android)
+### Desarrollo Local
 
-## 📱 PWA (Progressive Web App)
+1. **Terminal 1: Backend**
+```bash
+cd backend
+go run ./cmd/server
+```
 
-### Características PWA
-- **Instalación**: La aplicación puede instalarse en dispositivos móviles y desktop
-- **Offline**: Funcionalidad completa sin conexión a internet
-- **Actualizaciones**: Sistema automático de detección y actualización cada 6 horas
-- **Caché**: Estrategias inteligentes para optimizar rendimiento
+2. **Terminal 2: Frontend**
+```bash
+cd frontend
+npm start
+```
 
-### Configuración de Caché
+3. **Acceder a la aplicación**
+   - Frontend: http://localhost:4200
+   - Backend API: http://localhost:8080
+   - Health Check: http://localhost:8080/health
 
-**Freshness Strategy** (datos críticos):
-- `/api/auth/**` - Autenticación
-- `/api/users/me` - Usuario actual
-- MaxAge: 5 minutos
-- Timeout: 10 segundos
+### MockInterceptor
 
-**Performance Strategy** (datos frecuentes):
-- `/api/clientes/**` - Clientes
-- `/api/recobros/**` - Recobros
-- `/api/reportes/**` - Reportes
-- `/api/bots/**` - Bots AI
-- MaxAge: 1 hora
-- Timeout: 5 segundos
+El frontend incluye un `MockInterceptor` que detecta automáticamente si el backend está disponible:
+- ✅ Si el backend responde → usa datos reales
+- ✅ Si el backend no responde → usa datos mock
 
-### Service Worker
-El Service Worker se registra automáticamente en producción:
-- Precarga de assets críticos (app shell)
-- Lazy loading de assets secundarios
-- Caché de fuentes de Google Fonts
-- Estrategia de actualización "registerWhenStable"
+Esto permite desarrollar el frontend sin necesidad de tener el backend corriendo.
 
-### Manifest
-- **Nombre**: Soriano Mediadores CRM
-- **Theme Color**: #8b4049 (rojo semioscuro)
-- **Background**: #ffffff (blanco)
-- **Display**: standalone
-- **Iconos**: 72x72 hasta 512x512 (normal y maskable)
-- **Shortcuts**: Dashboard, Clientes, Recobros
+## Despliegue
 
-## 🔍 SEO
+### Docker
 
-### Meta Tags Dinámicos
-Cada página configura sus propios meta tags mediante `MetaTagsService`:
-- Title personalizado
-- Description específica
-- Keywords relevantes
-- Canonical URL
-- Open Graph tags
-- Twitter Cards
+Cada componente tiene su propio Dockerfile:
 
-### Structured Data (JSON-LD)
-- **Organization**: Información de la empresa
-- **WebApplication**: Detalles de la aplicación
-- **BreadcrumbList**: Navegación jerárquica (por página)
+**Frontend:**
+```bash
+cd frontend
+docker build -t soriano-frontend .
+docker run -p 80:80 soriano-frontend
+```
 
-### Archivos SEO
-- **robots.txt**: Configuración de crawlers (Google, Bing, etc.)
-- **sitemap.xml**: Mapa del sitio con todas las rutas
-- **Canonical URLs**: URLs canónicas en cada página
+**Backend:**
+```bash
+cd backend
+docker build -t soriano-backend .
+docker run -p 8080:8080 soriano-backend
+```
 
-## 🚀 Deployment
+### PM2 (Producción)
 
-### Build de Producción
+El proyecto incluye configuración PM2:
 
 ```bash
-npm run build
-# Output en: dist/soriano-mediadores-web/
-# Incluye Service Worker y manifest automáticamente
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup
 ```
 
-### PWA en Producción
-El Service Worker solo se activa en builds de producción:
-```bash
-npm run build:prod
-# El Service Worker se registra automáticamente
-# Disponible en /ngsw-worker.js
-```
+## Seguridad
 
-## 📝 Scripts NPM
+- **NO commitear** archivos sensibles:
+  - `backend/.env` (contiene secrets)
+  - Binarios compilados
+  - Archivos de configuración con credenciales
 
-```bash
-npm start          # Servidor de desarrollo
-npm run build      # Build de producción
-npm test           # Ejecutar tests
-npm run lint       # Linter
-```
+- **Archivos ignorados en Git:**
+  - `backend/.env`
+  - `backend/soriano-*` (binarios)
+  - `frontend/node_modules/`
+  - `frontend/dist/`
+  - `logs/`
 
-## 🚀 Uso de Servicios
+## Contribuir
 
-### Sistema de Notificaciones
+1. Crear una rama para tu feature: `git checkout -b feature/nombre-feature`
+2. Hacer commits descriptivos
+3. Push a tu rama: `git push origin feature/nombre-feature`
+4. Crear Pull Request
 
-```typescript
-import { NotificationService } from '@app/core/services';
+## Licencia
 
-constructor(private notifications: NotificationService) {}
+Propiedad de Soriano Mediadores. Todos los derechos reservados.
 
-// Notificaciones toast
-this.notifications.success('Operación exitosa');
-this.notifications.error('Error al procesar');
-this.notifications.warning('Advertencia importante');
-this.notifications.info('Información útil');
+## Soporte
 
-// Notificación persistente con acción
-this.notifications.addNotification(
-  'Nuevo recobro',
-  'Se ha detectado un nuevo recobro pendiente',
-  'info',
-  {
-    label: 'Ver',
-    callback: () => this.router.navigate(['/recobros'])
-  }
-);
-
-// Observar notificaciones no leídas
-this.notifications.unreadCount$.subscribe(count => {
-  console.log(`Notificaciones no leídas: ${count}`);
-});
-```
-
-### Búsqueda Global
-
-```typescript
-import { SearchService } from '@app/core/services';
-
-constructor(private search: SearchService) {}
-
-// Búsqueda simple
-this.search.search('Juan').subscribe(results => {
-  console.log('Resultados:', results);
-});
-
-// Búsqueda con debounce (para input en tiempo real)
-const searchQuery$ = new Subject<string>();
-this.search.searchWithDebounce(searchQuery$).subscribe(results => {
-  this.searchResults = results;
-});
-
-// Añadir al historial
-this.search.addToHistory('Juan Pérez');
-
-// Ver historial
-this.search.searchHistory$.subscribe(history => {
-  console.log('Búsquedas recientes:', history);
-});
-```
-
-### Exportación de Datos
-
-```typescript
-import { ExportService } from '@app/core/services';
-
-constructor(private export: ExportService) {}
-
-// Exportar a CSV
-this.export.exportToCSV(this.clientes, {
-  filename: 'clientes_2024.csv',
-  includeHeaders: true
-});
-
-// Exportar a JSON
-this.export.exportToJSON(this.recobros, {
-  filename: 'recobros.json'
-});
-
-// Exportar tabla HTML
-this.export.exportTableToCSV('table-clientes', {
-  filename: 'tabla_clientes.csv'
-});
-
-// Imprimir datos
-this.export.print(this.reportes, 'Reporte de Ventas 2024');
-```
-
-## 📄 Licencia
-
-Copyright © 2026 Soriano Mediadores de Seguros. Todos los derechos reservados.
+Para soporte técnico, contactar al equipo de desarrollo.
 
 ---
 
-Desarrollado con ❤️ por el equipo de Soriano Mediadores
+**Última actualización:** 2026-01-22
+**Versión:** 1.0.0
+**Repositorio:** https://github.com/webcadeveloper/Soriano_Mediadore_iacore
