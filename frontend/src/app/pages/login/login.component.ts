@@ -80,36 +80,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
     }
 
     this.loading = true;
-    this.a11y.announce('Iniciando sesión, por favor espere', 'polite');
+    this.a11y.announce('Redirigiendo a Microsoft para autenticación', 'polite');
 
-    this.authService.login(this.username, this.password).subscribe({
-      next: (response) => {
-        this.loading = false;
-        if (response.success && response.user) {
-          const message = `¡Bienvenido ${response.user.nombre}! Redirigiendo al panel principal`;
-          this.snackBar.open(message, 'Cerrar', {
-            duration: 3000
-          });
-          this.a11y.announce(message, 'polite');
-          this.router.navigate(['/dashboard']);
-        } else {
-          const message = response.error || 'Error al iniciar sesión';
-          this.snackBar.open(message, 'Cerrar', {
-            duration: 4000
-          });
-          this.a11y.announce(message, 'assertive');
-        }
-      },
-      error: (error) => {
-        this.loading = false;
-        const message = 'Error de conexión. Intente nuevamente.';
-        this.snackBar.open(message, 'Cerrar', {
-          duration: 4000
-        });
-        this.a11y.announce(message, 'assertive');
-        console.error('Login error:', error);
-      }
-    });
+    // Redirigir a Microsoft OAuth
+    this.authService.login();
   }
 
   togglePasswordVisibility(): void {
