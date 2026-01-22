@@ -1,0 +1,29 @@
+# robots.txt para Soriano Mediadores CRM
+
+# Permitir acceso a todos los bots (para entorno de producción público)
+User-agent: *
+Allow: /
+
+# Bloquear acceso a rutas sensibles
+Disallow: /api/
+Disallow: /admin/
+Disallow: /login
+
+# Sitemap
+Sitemap: https://sorianomediadores.com/sitemap.xml
+
+# Tiempos de rastreo (opcional)
+Crawl-delay: 10
+
+# Bots específicos
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: AhrefsBot
+Crawl-delay: 30
+
+User-agent: SemrushBot
+Crawl-delay: 30

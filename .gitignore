@@ -1,42 +1,33 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+# Frontend (Angular)
+frontend/dist/
+frontend/node_modules/
+frontend/.angular/
+frontend/chunk-*.js
+frontend/polyfills-*.js
+frontend/main-*.js
+frontend/styles-*.css
 
-# Compiled output
-/dist
-/tmp
-/out-tsc
-/bazel-out
+# Backend (Go)
+backend/soriano-api
+backend/soriano-backend
+backend/soriano-server
+backend/.env
+*.exe
 
-# Node
-/node_modules
-npm-debug.log
-yarn-error.log
+# Compilados y temporales
+/frontend-compiled/
+/logs/
 
-# IDEs and editors
+# IDEs
+.vscode/
 .idea/
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
+*.swp
+*.swo
+*~
 
-# Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-.history/*
-
-# Miscellaneous
-/.angular/cache
-.sass-cache/
-/connect.lock
-/coverage
-/libpeerconnection.log
-testem.log
-/typings
-
-# System files
+# OS
 .DS_Store
 Thumbs.db
+
+# Claude local settings
+.claude/settings.local.json

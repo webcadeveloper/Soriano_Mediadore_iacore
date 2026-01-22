@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Último Aviso - Pago Pendiente</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Arial', 'Helvetica', sans-serif; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5;">
+        <tr>
+            <td>
+                <!-- Header con Logo -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(180deg, #8B0000 0%, #5C0000 100%);">
+                    <tr>
+                        <td style="padding: 40px 20px; text-align: center;">
+                            <img src="https://i.postimg.cc/vZTKnynR/asd2.png" alt="Soriano Mediadores" style="max-width: 350px; width: 80%; height: auto; display: block; margin: 0 auto; filter: brightness(1.4) contrast(1.2);" />
+                            <!-- ÚLTIMO AVISO Badge -->
+                            <div style="margin-top: 20px;">
+                                <span style="background: linear-gradient(135deg, #DC143C 0%, #8B0000 100%); color: #ffffff; padding: 12px 30px; font-size: 18px; font-weight: 700; letter-spacing: 1.5px; border-radius: 6px; box-shadow: 0 4px 12px rgba(220, 20, 60, 0.5); display: inline-block; border: 2px solid #ffffff;">
+                                    🚨 ÚLTIMO AVISO 🚨
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Barra de Alerta -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(90deg, #FFF5F5 0%, #FFE5E5 100%); border-bottom: 3px solid #8B0000;">
+                    <tr>
+                        <td style="padding: 18px 20px; text-align: center;">
+                            <p style="margin: 0; color: #8B0000; font-size: 16px; font-weight: 700; letter-spacing: 0.5px;">
+                                🚨 ÚLTIMO AVISO - ACCIÓN CRÍTICA REQUERIDA
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Contenido Principal - Estilo Factura -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff;">
+                    <tr>
+                        <td style="padding: 40px 20px;">
+
+                            <!-- Sección de Información del Cliente -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td style="width: 50%; vertical-align: top; padding-right: 10px;">
+                                        <h3 style="margin: 0 0 15px 0; color: #8B0000; font-size: 16px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #8B0000; padding-bottom: 8px;">
+                                            Destinatario
+                                        </h3>
+                                        <p style="margin: 0 0 8px 0; color: #2C2C2C; font-size: 15px; line-height: 1.6;">
+                                            <strong>{{NOMBRE_CLIENTE}}</strong>
+                                        </p>
+                                        <p style="margin: 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                                            ID Account: {{TOMADOR}}
+                                        </p>
+                                    </td>
+                                    <td style="width: 50%; vertical-align: top; padding-left: 10px; text-align: right;">
+                                        <h3 style="margin: 0 0 15px 0; color: #8B0000; font-size: 16px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #8B0000; padding-bottom: 8px;">
+                                            Documento
+                                        </h3>
+                                        <p style="margin: 0 0 8px 0; color: #2C2C2C; font-size: 14px;">
+                                            <strong>N° Recibo:</strong> {{NUMERO_RECIBO}}
+                                        </p>
+                                        <p style="margin: 0 0 8px 0; color: #666666; font-size: 14px;">
+                                            <strong>Fecha:</strong> <span id="current-date"></span>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Mensaje Principal -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 20px; background-color: #FFF5F5; border-left: 4px solid #8B0000;">
+                                        <p style="margin: 0 0 10px 0; color: #2C2C2C; font-size: 16px; font-weight: 600;">
+                                            Último Aviso - Anulación Inminente
+                                        </p>
+                                        <p style="margin: 0; color: #4A4A4A; font-size: 14px; line-height: 1.6;">
+                                            Este es nuestro <strong style="color: #8B0000;">último aviso antes de proceder a la anulación de su póliza</strong>. Dispone de <strong style="color: #8B0000;">48 horas</strong> para regularizar el pago. Tras este plazo, su cobertura quedará sin efecto.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Tabla de Detalles del Recibo - Estilo Factura -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 2px solid #8B0000; margin-bottom: 30px;">
+                                <!-- Encabezado de la Tabla -->
+                                <tr style="background: linear-gradient(135deg, #8B0000 0%, #5C0000 100%);">
+                                    <td colspan="2" style="padding: 15px 20px; text-align: center;">
+                                        <h3 style="margin: 0; color: #ffffff; font-size: 18px; font-weight: 700; letter-spacing: 0.5px;">
+                                            DETALLE DEL RECIBO
+                                        </h3>
+                                    </td>
+                                </tr>
+
+                                <!-- Filas de Datos -->
+                                <tr style="background-color: #FAFAFA;">
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #E0E0E0; color: #666666; font-size: 14px; width: 35%;">
+                                        <strong>Número de Recibo</strong>
+                                    </td>
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #E0E0E0; color: #2C2C2C; font-size: 14px; font-weight: 600;">
+                                        {{NUMERO_RECIBO}}
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #FFFFFF;">
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #E0E0E0; color: #666666; font-size: 14px;">
+                                        <strong>Número de Póliza</strong>
+                                    </td>
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #E0E0E0; color: #2C2C2C; font-size: 14px; font-weight: 600;">
+                                        {{NUMERO_POLIZA}}
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #FAFAFA;">
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #E0E0E0; color: #666666; font-size: 14px;">
+                                        <strong>Tipo de Seguro</strong>
+                                    </td>
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #E0E0E0; color: #2C2C2C; font-size: 14px; font-weight: 600;">
+                                        {{RAMO}}
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #FFFFFF;">
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #E0E0E0; color: #666666; font-size: 14px;">
+                                        <strong>Tomador</strong>
+                                    </td>
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #E0E0E0; color: #2C2C2C; font-size: 14px; font-weight: 600;">
+                                        {{TOMADOR}}
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #FAFAFA;">
+                                    <td style="padding: 12px 20px; border-bottom: 2px solid #8B0000; color: #666666; font-size: 14px;">
+                                        <strong>Descripción de Riesgo</strong>
+                                    </td>
+                                    <td style="padding: 12px 20px; border-bottom: 2px solid #8B0000; color: #2C2C2C; font-size: 14px; font-weight: 600;">
+                                        {{DESCRIPCION_RIESGO}}
+                                    </td>
+                                </tr>
+
+                                <!-- Motivo de Devolución -->
+                                <tr style="background: linear-gradient(135deg, #FFF5F5 0%, #FFE5E5 100%);">
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #8B0000; color: #666666; font-size: 14px;">
+                                        <strong>Motivo de Devolución</strong>
+                                    </td>
+                                    <td style="padding: 12px 20px; border-bottom: 1px solid #8B0000; color: #8B0000; font-size: 14px; font-weight: 700;">
+                                        {{MOTIVO_DEVOLUCION}}
+                                    </td>
+                                </tr>
+
+                                <!-- Total a Pagar - Destacado -->
+                                <tr style="background: linear-gradient(135deg, #2C2C2C 0%, #1A1A1A 100%);">
+                                    <td style="padding: 18px 20px; color: #ffffff; font-size: 17px;">
+                                        <strong>IMPORTE PENDIENTE</strong>
+                                    </td>
+                                    <td style="padding: 18px 20px; color: #FFD700; font-size: 26px; font-weight: 700; text-align: right;">
+                                        {{IMPORTE}}€
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Opciones de Pago -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F8F9FA; padding: 25px; margin-bottom: 25px; border: 1px solid #E0E0E0;">
+                                <tr>
+                                    <td>
+                                        <h3 style="margin: 0 0 20px 0; color: #2C2C2C; font-size: 18px; font-weight: 700; text-align: center;">
+                                            💳 Métodos de Pago Disponibles
+                                        </h3>
+
+                                        <!-- Transferencia Bancaria -->
+                                        <div style="background-color: #ffffff; border: 2px solid #8B0000; padding: 20px; margin-bottom: 18px; border-radius: 8px;">
+                                            <h4 style="margin: 0 0 12px 0; color: #8B0000; font-size: 16px; font-weight: 700; text-align: center;">
+                                                🏦 Transferencia Bancaria
+                                            </h4>
+                                            <p style="margin: 0 0 10px 0; color: #666666; font-size: 13px; text-align: center;">
+                                                <strong>IBAN:</strong>
+                                            </p>
+                                            <div style="background: #F8F9FA; padding: 12px; text-align: center; border: 1px solid #8B0000; border-radius: 6px;">
+                                                <p style="margin: 0; color: #2C2C2C; font-size: 16px; font-weight: 700; font-family: 'Courier New', monospace; letter-spacing: 1.5px;">
+                                                    ES96 2100 1639 2902 0032 7372
+                                                </p>
+                                            </div>
+                                            <p style="margin: 12px 0 0 0; color: #666666; font-size: 12px; text-align: center;">
+                                                Indique el número de recibo <strong>{{NUMERO_RECIBO}}</strong> en el concepto
+                                            </p>
+                                        </div>
+
+                                        <!-- Bizum -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 15px;">
+                                            <tr>
+                                                <td align="center">
+                                                    <a href="tel:+34659022007" style="display: inline-block; background: linear-gradient(135deg, #00B2E3 0%, #0090C0 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 15px; font-weight: 700; width: 90%; max-width: 500px; box-sizing: border-box; text-align: center; box-shadow: 0 3px 12px rgba(0, 178, 227, 0.3);">
+                                                        💸 Pagar por Bizum: +34 659 02 20 07
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- WhatsApp -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td align="center">
+                                                    <a href="https://wa.me/34659022007?text=Hola,%20necesito%20información%20sobre%20el%20recibo%20{{NUMERO_RECIBO}}" style="display: inline-block; background: linear-gradient(135deg, #25D366 0%, #1EBE5C 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 15px; font-weight: 700; width: 90%; max-width: 500px; box-sizing: border-box; text-align: center; box-shadow: 0 3px 12px rgba(37, 211, 102, 0.3);">
+                                                        💬 Contactar por WhatsApp
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Información de Contacto -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 25px;">
+                                <tr>
+                                    <td style="padding: 20px; background-color: #F8F9FA; border-top: 3px solid #8B0000;">
+                                        <p style="margin: 0 0 10px 0; color: #2C2C2C; font-size: 15px; font-weight: 600; text-align: center;">
+                                            ¿Necesita Asistencia?
+                                        </p>
+                                        <p style="margin: 0; color: #4A4A4A; font-size: 14px; text-align: center;">
+                                            📧 <a href="mailto:direccion@sorianomediadores.es" style="color: #8B0000; text-decoration: none; font-weight: 600;">direccion@sorianomediadores.es</a><br>
+                                            📱 <a href="https://wa.me/34659022007" style="color: #25D366; text-decoration: none; font-weight: 600;">+34 659 02 20 07</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Footer -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #2C2C2C 0%, #1A1A1A 100%);">
+                    <tr>
+                        <td style="padding: 30px 20px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; color: #ffffff; font-size: 16px; font-weight: 700; letter-spacing: 0.5px;">
+                                SORIANO MEDIADORES
+                            </p>
+                            <p style="margin: 0 0 15px 0; color: #CCCCCC; font-size: 13px;">
+                                Mediadores de Seguros - Al servicio de nuestros clientes
+                            </p>
+                            <p style="margin: 0; color: #999999; font-size: 11px; line-height: 1.5;">
+                                Este es un correo electrónico automático. Por favor, no responda directamente a este mensaje.<br>
+                                Para cualquier consulta, utilice los canales de contacto indicados arriba.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+    <script>
+        // Set current date
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+        document.getElementById('current-date').textContent = dd + '/' + mm + '/' + yyyy;
+    </script>
+</body>
+</html>

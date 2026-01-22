@@ -1,0 +1,192 @@
+<div class="bots-container">
+  <!-- Header Section -->
+  <div class="bots-header">
+    <div class="header-content">
+      <h1 class="bots-title">
+        <mat-icon>smart_toy</mat-icon>
+        Asistentes AI
+      </h1>
+      <p class="bots-subtitle">Chatea con nuestros bots inteligentes</p>
+    </div>
+  </div>
+
+  <!-- Bot Selector - Avatar Cards Style -->
+  <div class="bots-selector" *ngIf="bots.length > 0">
+    <h3 class="selector-title">Selecciona un asistente:</h3>
+    <div class="bot-cards-grid">
+      <div
+        *ngFor="let bot of bots"
+        class="bot-card"
+        [class.selected]="botSeleccionado?.id === bot.id"
+        (click)="seleccionarBot(bot)">
+        <div class="bot-avatar">
+          <mat-icon>smart_toy</mat-icon>
+        </div>
+        <div class="bot-info">
+          <h4>{{ bot.nombre }}</h4>
+          <p>{{ bot.descripcion }}</p>
+        </div>
+        <div class="bot-status" *ngIf="botSeleccionado?.id === bot.id">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Container -->
+  <div *ngIf="botSeleccionado" class="chat-container">
+    <!-- Chat Header -->
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="bot-avatar-small">
+          <mat-icon>smart_toy</mat-icon>
+        </div>
+        <div class="bot-details">
+          <h3>{{ botSeleccionado.nombre }}</h3>
+          <p>
+            <span class="status-dot"></span>
+            En línea
+          </p>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button
+          mat-icon-button
+          [class.active]="voiceEnabled"
+          matTooltip="Activar/Desactivar respuestas por voz">
+          <mat-icon>{{ voiceEnabled ? 'volume_up' : 'volume_off' }}</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Más opciones">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Messages Area -->
+    <div class="chat-messages" #chatMessages>
+      <div class="messages-wrapper">
+        <div
+          *ngFor="let msg of mensajes; let i = index"
+          class="message-container"
+          [class.user]="msg.esUsuario"
+          [class.bot]="!msg.esUsuario">
+          <!-- Bot Avatar (solo para mensajes del bot) -->
+          <div class="message-avatar" *ngIf="!msg.esUsuario">
+            <mat-icon>smart_toy</mat-icon>
+          </div>
+
+          <!-- Message Bubble -->
+          <div class="message-bubble">
+            <div class="message-text">{{ msg.texto }}</div>
+            <div class="message-meta">
+              <span class="message-time">{{ msg.timestamp | date:'HH:mm' }}</span>
+              <mat-icon *ngIf="msg.esUsuario" class="message-status">done_all</mat-icon>
+            </div>
+          </div>
+
+          <!-- User Avatar (solo para mensajes del usuario) -->
+          <div class="message-avatar user-avatar" *ngIf="msg.esUsuario">
+            <mat-icon>person</mat-icon>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div *ngIf="loading" class="message-container bot typing">
+          <div class="message-avatar">
+            <mat-icon>smart_toy</mat-icon>
+          </div>
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Input Area -->
+    <div class="chat-input-area">
+      <!-- Voice Status Banner -->
+      <div *ngIf="isListening" class="voice-status-banner listening">
+        <div class="voice-animation">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span>Escuchando...</span>
+        <button mat-icon-button (click)="stopListening()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div *ngIf="isSpeaking" class="voice-status-banner speaking">
+        <div class="voice-animation">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span>Reproduciendo respuesta...</span>
+        <button mat-icon-button (click)="stopSpeaking()">
+          <mat-icon>stop</mat-icon>
+        </button>
+      </div>
+
+      <!-- Input Controls -->
+      <div class="input-controls">
+        <!-- Voice Button -->
+        <button
+          mat-mini-fab
+          [class.listening]="isListening"
+          [color]="isListening ? 'warn' : 'primary'"
+          (click)="toggleVoiceInput()"
+          [disabled]="loading || !voiceEnabled"
+          class="voice-button"
+          matTooltip="{{ voiceEnabled ? 'Usar voz' : 'Voz no disponible' }}">
+          <mat-icon>{{ isListening ? 'mic' : 'mic_none' }}</mat-icon>
+        </button>
+
+        <!-- Text Input -->
+        <div class="text-input-wrapper">
+          <input
+            type="text"
+            [(ngModel)]="nuevoMensaje"
+            (keypress)="onKeyPress($event)"
+            [disabled]="loading || isListening"
+            placeholder="Escribe tu mensaje..."
+            class="text-input">
+          <button
+            mat-icon-button
+            class="emoji-button"
+            matTooltip="Emojis">
+            <mat-icon>emoji_emotions</mat-icon>
+          </button>
+        </div>
+
+        <!-- Send Button -->
+        <button
+          mat-fab
+          color="primary"
+          (click)="enviarMensaje()"
+          [disabled]="loading || !nuevoMensaje.trim() || isListening"
+          class="send-button">
+          <mat-icon>send</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="!botSeleccionado && bots.length === 0" class="loading-state">
+    <mat-spinner color="primary"></mat-spinner>
+    <p>Cargando asistentes disponibles...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="bots.length === 0 && !botSeleccionado" class="empty-state">
+    <mat-icon>smart_toy</mat-icon>
+    <h3>No hay bots disponibles</h3>
+    <p>No se encontraron asistentes configurados en el sistema</p>
+  </div>
+</div>

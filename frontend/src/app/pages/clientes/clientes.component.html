@@ -1,0 +1,217 @@
+<div class="clientes-container">
+  <!-- Header -->
+  <div class="clientes-header">
+    <div class="header-content">
+      <h1 class="clientes-title">
+        <mat-icon>people</mat-icon>
+        Gestión de Clientes
+      </h1>
+      <p class="clientes-subtitle">Busca y administra la información de tus clientes</p>
+    </div>
+  </div>
+
+  <!-- Search Card -->
+  <mat-card class="search-card">
+    <div class="search-header">
+      <mat-icon>search</mat-icon>
+      <h3>Buscar Clientes</h3>
+    </div>
+    <div class="search-form">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar por nombre, NIF o email</mat-label>
+        <input
+          matInput
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()"
+          placeholder="Ejemplo: García, 12345678A, email@ejemplo.com">
+        <mat-icon matPrefix>search</mat-icon>
+        <button
+          *ngIf="searchQuery"
+          mat-icon-button
+          matSuffix
+          (click)="clearSearch()"
+          matTooltip="Limpiar búsqueda">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSearch()"
+        [disabled]="searchQuery.length < 2"
+        class="search-button">
+        <mat-icon>search</mat-icon>
+        <span class="hide-mobile">Buscar</span>
+      </button>
+    </div>
+
+    <!-- Quick filters -->
+    <div class="quick-filters" *ngIf="searched">
+      <span class="filter-label">Filtros rápidos:</span>
+      <button mat-stroked-button class="filter-chip">
+        <mat-icon>filter_list</mat-icon>
+        Provincia
+      </button>
+      <button mat-stroked-button class="filter-chip">
+        <mat-icon>euro</mat-icon>
+        Rango de primas
+      </button>
+      <button mat-stroked-button class="filter-chip">
+        <mat-icon>event</mat-icon>
+        Fecha
+      </button>
+    </div>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner color="primary"></mat-spinner>
+    <p>Buscando clientes...</p>
+  </div>
+
+  <!-- Results Counter -->
+  <div *ngIf="!loading && searched && clientes.length > 0" class="results-info">
+    <mat-icon>info</mat-icon>
+    <span>Se encontraron <strong>{{ clientes.length }}</strong> cliente(s)</span>
+  </div>
+
+  <!-- Desktop Table View -->
+  <mat-card *ngIf="!loading && clientes.length > 0" class="results-card hide-mobile">
+    <div class="table-wrapper">
+      <table mat-table [dataSource]="clientes" class="clients-table">
+        <!-- NIF Column -->
+        <ng-container matColumnDef="nif">
+          <th mat-header-cell *matHeaderCellDef>NIF</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="nif-badge">{{ cliente.nif }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Nombre Column -->
+        <ng-container matColumnDef="nombre_completo">
+          <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+          <td mat-cell *matCellDef="let cliente">
+            <div class="client-name">
+              <div class="client-avatar">
+                {{ cliente.nombre_completo.charAt(0).toUpperCase() }}
+              </div>
+              <span class="name-text">{{ cliente.nombre_completo }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Email Column -->
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="email-text">{{ cliente.email || '-' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Teléfono Column -->
+        <ng-container matColumnDef="telefono">
+          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="phone-text">{{ cliente.telefono || '-' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Provincia Column -->
+        <ng-container matColumnDef="provincia">
+          <th mat-header-cell *matHeaderCellDef>Provincia</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="provincia-badge">{{ cliente.provincia || '-' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Total Primas Column -->
+        <ng-container matColumnDef="total_primas">
+          <th mat-header-cell *matHeaderCellDef>Total Primas</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="primas-amount">{{ cliente.total_primas | currency:'EUR' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let cliente">
+            <button
+              mat-icon-button
+              color="primary"
+              [routerLink]="['/clientes', cliente.id]"
+              matTooltip="Ver detalle">
+              <mat-icon>visibility</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns;"
+          class="clickable-row"
+          [routerLink]="['/clientes', row.id]">
+        </tr>
+      </table>
+    </div>
+  </mat-card>
+
+  <!-- Mobile Card View -->
+  <div *ngIf="!loading && clientes.length > 0" class="mobile-cards show-mobile">
+    <mat-card
+      *ngFor="let cliente of clientes; trackBy: trackByClienteId"
+      class="client-card"
+      [routerLink]="['/clientes', cliente.id]">
+      <div class="card-header">
+        <div class="client-avatar-large">
+          {{ cliente.nombre_completo.charAt(0).toUpperCase() }}
+        </div>
+        <div class="card-title">
+          <h3>{{ cliente.nombre_completo }}</h3>
+          <span class="nif-badge">{{ cliente.nif }}</span>
+        </div>
+        <mat-icon class="card-arrow">chevron_right</mat-icon>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="card-content">
+        <div class="info-row">
+          <mat-icon>email</mat-icon>
+          <span>{{ cliente.email || 'Sin email' }}</span>
+        </div>
+        <div class="info-row">
+          <mat-icon>phone</mat-icon>
+          <span>{{ cliente.telefono || 'Sin teléfono' }}</span>
+        </div>
+        <div class="info-row">
+          <mat-icon>location_on</mat-icon>
+          <span>{{ cliente.provincia || 'Sin provincia' }}</span>
+        </div>
+        <div class="info-row highlight">
+          <mat-icon>euro</mat-icon>
+          <span class="primas-amount">{{ cliente.total_primas | currency:'EUR' }}</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && searched && clientes.length === 0" class="empty-state">
+    <mat-icon>search_off</mat-icon>
+    <h3>No se encontraron resultados</h3>
+    <p>Intenta con otros términos de búsqueda o verifica los filtros aplicados</p>
+    <button mat-raised-button color="primary" (click)="clearSearch()">
+      <mat-icon>refresh</mat-icon>
+      Nueva búsqueda
+    </button>
+  </div>
+
+  <!-- Initial State -->
+  <div *ngIf="!loading && !searched" class="initial-state">
+    <mat-icon>people_outline</mat-icon>
+    <h3>Comienza buscando un cliente</h3>
+    <p>Usa el campo de búsqueda para encontrar clientes por nombre, NIF o email</p>
+  </div>
+</div>
