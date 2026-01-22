@@ -406,6 +406,7 @@ func LogoutHandler(c *fiber.Ctx) error {
 	sessionID := c.Cookies("session_id")
 	if sessionID != "" {
 		DeleteSession(sessionID)
+		log.Printf("🔓 Sesión cerrada: %s", sessionID)
 	}
 
 	// Eliminar cookie
@@ -414,10 +415,20 @@ func LogoutHandler(c *fiber.Ctx) error {
 		Value:    "",
 		Expires:  time.Now().Add(-1 * time.Hour),
 		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "Lax",
 		Path:     "/",
 	})
 
-	// Redirigir a Microsoft logout y luego a login
+	// Si es una petición AJAX/JSON, devolver JSON
+	if c.Get("Accept") == "application/json" || c.Method() == "POST" {
+		return c.JSON(fiber.Map{
+			"success": true,
+			"message": "Sesión cerrada correctamente",
+		})
+	}
+
+	// Si es navegación directa, redirigir a Microsoft logout
 	logoutURL := fmt.Sprintf(
 		"https://login.microsoftonline.com/%s/oauth2/v2.0/logout?post_logout_redirect_uri=%s",
 		tenantID,

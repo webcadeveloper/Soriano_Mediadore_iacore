@@ -140,8 +140,20 @@ export class AuthService {
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
 
-    // Redirigir al logout del backend (que tambien hace logout de Microsoft)
-    window.location.href = '/auth/logout';
+    // Llamar al endpoint de logout del backend
+    this.http.post('/auth/logout', {}, { withCredentials: true })
+      .subscribe({
+        next: () => {
+          console.log('Sesión cerrada correctamente');
+          // Redirigir a la página de login
+          this.router.navigate(['/login']);
+        },
+        error: (err) => {
+          console.error('Error al cerrar sesión:', err);
+          // Redirigir a login de todas formas
+          this.router.navigate(['/login']);
+        }
+      });
   }
 
   /**
