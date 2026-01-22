@@ -1,126 +1,551 @@
 <div class="reportes-container">
-  <h1>Reportes y Análisis</h1>
+  <div class="header">
+    <h1>Business Intelligence - Soriano Mediadores</h1>
+    <p class="subtitle">Análisis completo de la actividad comercial y operativa</p>
+  </div>
 
   <div *ngIf="loading" class="loading-container">
     <mat-spinner></mat-spinner>
-    <p>Cargando reportes...</p>
+    <p>Cargando datos de Business Intelligence...</p>
   </div>
 
   <div *ngIf="!loading" class="reportes-content">
-    <!-- Estadísticas Generales -->
-    <div class="stats-summary">
-      <mat-card class="stat-card">
-        <mat-icon>people</mat-icon>
-        <div class="stat-content">
+
+    <!-- KPIs Principales en Cards -->
+    <div class="kpis-grid">
+      <mat-card class="kpi-card primary">
+        <div class="kpi-icon">
+          <mat-icon>euro</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <h3>{{ formatCurrency(financialKPIs?.total_primas_mes_actual || 0) }}</h3>
+          <p>Primas Mes Actual</p>
+          <div class="kpi-trend" [class.positive]="isPrimasIncreasing()" [class.negative]="!isPrimasIncreasing()">
+            <mat-icon>{{ isPrimasIncreasing() ? 'trending_up' : 'trending_down' }}</mat-icon>
+            <span>{{ getPrimasChangePercentage() }}</span>
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card success">
+        <div class="kpi-icon">
+          <mat-icon>attach_money</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <h3>{{ formatCurrency(financialKPIs?.total_comisiones_mes || 0) }}</h3>
+          <p>Comisiones del Mes</p>
+          <div class="kpi-detail">
+            Margen: {{ formatPercentage(financialKPIs?.margen_comision_promedio || 0) }}
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card info">
+        <div class="kpi-icon">
+          <mat-icon>assessment</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <h3>{{ getRatioCobro() }}</h3>
+          <p>Ratio de Cobro</p>
+          <div class="kpi-detail">
+            Morosidad: {{ getMorosidadPercentage() }}
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card warning">
+        <div class="kpi-icon">
+          <mat-icon>warning</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <h3>{{ getSiniestrosAbiertos() }}</h3>
+          <p>Siniestros Abiertos</p>
+          <div class="kpi-detail">
+            Tiempo medio: {{ formatNumber(claimsAnalysis?.tiempo_medio_resolucion_dias || 0) }} días
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="kpi-content">
           <h3>{{ formatNumber(totalClientes) }}</h3>
           <p>Clientes Totales</p>
         </div>
       </mat-card>
 
-      <mat-card class="stat-card">
-        <mat-icon>description</mat-icon>
-        <div class="stat-content">
+      <mat-card class="kpi-card">
+        <div class="kpi-icon">
+          <mat-icon>description</mat-icon>
+        </div>
+        <div class="kpi-content">
           <h3>{{ formatNumber(totalPolizas) }}</h3>
           <p>Pólizas Activas</p>
         </div>
       </mat-card>
 
-      <mat-card class="stat-card">
-        <mat-icon>receipt</mat-icon>
-        <div class="stat-content">
+      <mat-card class="kpi-card">
+        <div class="kpi-icon">
+          <mat-icon>receipt</mat-icon>
+        </div>
+        <div class="kpi-content">
           <h3>{{ formatNumber(totalRecibos) }}</h3>
-          <p>Recibos</p>
+          <p>Recibos Gestionados</p>
         </div>
       </mat-card>
 
-      <mat-card class="stat-card">
-        <mat-icon>warning</mat-icon>
-        <div class="stat-content">
-          <h3>{{ formatNumber(totalSiniestros) }}</h3>
-          <p>Siniestros</p>
+      <mat-card class="kpi-card">
+        <div class="kpi-icon">
+          <mat-icon>shield</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <h3>{{ getConcentracionRiesgo() }}</h3>
+          <p>Concentración Riesgo (Top 20)</p>
         </div>
       </mat-card>
     </div>
 
-    <mat-tab-group>
-      <!-- Tab Top 20 Clientes -->
-      <mat-tab label="Top 20 Clientes">
+    <!-- Tabs de Análisis Detallado -->
+    <mat-tab-group animationDuration="300ms" class="analytics-tabs">
+
+      <!-- Tab 1: Resumen Ejecutivo -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>dashboard</mat-icon>
+          <span>Resumen Ejecutivo</span>
+        </ng-template>
         <div class="tab-content">
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon>star</mat-icon>
-                Top 20 Clientes por Primas
-              </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <table mat-table [dataSource]="topClientes" class="top-clientes-table">
-                <!-- Posición -->
-                <ng-container matColumnDef="posicion">
-                  <th mat-header-cell *matHeaderCellDef>#</th>
-                  <td mat-cell *matCellDef="let cliente; let i = index">
-                    <span class="position-badge" [class.top-3]="i < 3">{{ i + 1 }}</span>
-                  </td>
-                </ng-container>
+          <div class="charts-row">
+            <mat-card class="chart-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>show_chart</mat-icon>
+                  Evolución Mensual de Primas (Últimos 12 Meses)
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas
+                    baseChart
+                    [data]="primasEvolucionChartData"
+                    [options]="primasEvolucionChartOptions"
+                    [type]="primasEvolucionChartType">
+                  </canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
 
-                <!-- Nombre -->
-                <ng-container matColumnDef="nombre_completo">
-                  <th mat-header-cell *matHeaderCellDef>Cliente</th>
-                  <td mat-cell *matCellDef="let cliente">
-                    <div class="cliente-info">
-                      <strong>{{ cliente.nombre_completo }}</strong>
-                    </div>
-                  </td>
-                </ng-container>
-
-                <!-- NIF -->
-                <ng-container matColumnDef="nif">
-                  <th mat-header-cell *matHeaderCellDef>NIF</th>
-                  <td mat-cell *matCellDef="let cliente">{{ cliente.nif }}</td>
-                </ng-container>
-
-                <!-- Número de Pólizas -->
-                <ng-container matColumnDef="num_polizas">
-                  <th mat-header-cell *matHeaderCellDef>Pólizas</th>
-                  <td mat-cell *matCellDef="let cliente">
-                    <span class="badge">{{ cliente.num_polizas }}</span>
-                  </td>
-                </ng-container>
-
-                <!-- Total Primas -->
-                <ng-container matColumnDef="total_primas">
-                  <th mat-header-cell *matHeaderCellDef>Total Primas</th>
-                  <td mat-cell *matCellDef="let cliente" class="amount">
-                    {{ formatCurrency(cliente.total_primas) }}
-                  </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumnsClientes"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumnsClientes;" class="cliente-row"></tr>
-              </table>
-
-              <div *ngIf="topClientes.length === 0" class="no-data">
-                <mat-icon>info</mat-icon>
-                <p>No hay datos disponibles</p>
-              </div>
-            </mat-card-content>
-          </mat-card>
+          <div class="charts-row">
+            <mat-card class="chart-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>star</mat-icon>
+                  Top 10 Clientes por Primas
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas
+                    baseChart
+                    [data]="topClientesChartData"
+                    [options]="topClientesChartOptions"
+                    [type]="topClientesChartType">
+                  </canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
         </div>
       </mat-tab>
 
-      <!-- Tab Análisis por Ramo -->
-      <mat-tab label="Análisis por Ramo">
+      <!-- Tab 2: Análisis Financiero -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>account_balance</mat-icon>
+          <span>Análisis Financiero</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="financial-summary">
+            <div class="summary-card">
+              <h4>Primas Totales Año</h4>
+              <p class="amount">{{ formatCurrency(financialKPIs?.total_primas_anio_actual || 0) }}</p>
+            </div>
+            <div class="summary-card">
+              <h4>Comisiones Totales Año</h4>
+              <p class="amount">{{ formatCurrency(financialKPIs?.total_comisiones_anio || 0) }}</p>
+            </div>
+            <div class="summary-card">
+              <h4>Promedio Prima por Póliza</h4>
+              <p class="amount">{{ formatCurrency(financialKPIs?.promedio_prima_poliza || 0) }}</p>
+            </div>
+            <div class="summary-card">
+              <h4>Margen Comisión Promedio</h4>
+              <p class="amount">{{ formatPercentage(financialKPIs?.margen_comision_promedio || 0) }}</p>
+            </div>
+          </div>
+
+          <div class="charts-row">
+            <mat-card class="chart-card half">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>pie_chart</mat-icon>
+                  Distribución de Primas por Ramo
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas
+                    baseChart
+                    [data]="distribucionRamoChartData"
+                    [options]="distribucionRamoChartOptions"
+                    [type]="distribucionRamoChartType">
+                  </canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="chart-card half">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>donut_large</mat-icon>
+                  Pocket Share por Compañía Aseguradora
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas
+                    baseChart
+                    [data]="pocketShareChartData"
+                    [options]="pocketShareChartOptions"
+                    [type]="pocketShareChartType">
+                  </canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div class="charts-row">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>business</mat-icon>
+                  Pocket Share Detallado por Compañía
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Compañía</th>
+                      <th>Nº Pólizas</th>
+                      <th>Total Primas</th>
+                      <th>Porcentaje</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of financialKPIs?.pocket_share_por_compania || []">
+                      <td><strong>{{ item.gestora }}</strong></td>
+                      <td>{{ formatNumber(item.num_polizas) }}</td>
+                      <td class="amount">{{ formatCurrency(item.total_primas) }}</td>
+                      <td>
+                        <div class="percentage-bar">
+                          <div class="bar-fill" [style.width.%]="item.porcentaje"></div>
+                          <span class="percentage-text">{{ formatPercentage(item.porcentaje) }}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Tab 3: Cartera y Clientes -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>folder_open</mat-icon>
+          <span>Cartera y Clientes</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="charts-row">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>star</mat-icon>
+                  Top 20 Clientes por Volumen de Primas
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <table mat-table [dataSource]="topClientes" class="top-clientes-table">
+                  <ng-container matColumnDef="posicion">
+                    <th mat-header-cell *matHeaderCellDef>#</th>
+                    <td mat-cell *matCellDef="let cliente; let i = index">
+                      <span class="position-badge" [class.top-3]="i < 3">{{ i + 1 }}</span>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="nombre_completo">
+                    <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                    <td mat-cell *matCellDef="let cliente">
+                      <div class="cliente-info">
+                        <strong>{{ cliente.nombre_completo }}</strong>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="nif">
+                    <th mat-header-cell *matHeaderCellDef>NIF</th>
+                    <td mat-cell *matCellDef="let cliente">{{ cliente.nif }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="num_polizas">
+                    <th mat-header-cell *matHeaderCellDef>Pólizas</th>
+                    <td mat-cell *matCellDef="let cliente">
+                      <span class="badge">{{ cliente.num_polizas }}</span>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="total_primas">
+                    <th mat-header-cell *matHeaderCellDef>Total Primas</th>
+                    <td mat-cell *matCellDef="let cliente" class="amount">
+                      {{ formatCurrency(cliente.total_primas) }}
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="displayedColumnsClientes"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumnsClientes;" class="cliente-row"></tr>
+                </table>
+
+                <div *ngIf="topClientes.length === 0" class="no-data">
+                  <mat-icon>info</mat-icon>
+                  <p>No hay datos disponibles</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div class="charts-row">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>location_on</mat-icon>
+                  Distribución Geográfica por Provincia
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Provincia</th>
+                      <th>Nº Clientes</th>
+                      <th>Nº Pólizas</th>
+                      <th>Total Primas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of portfolioAnalysis?.distribucion_por_provincia || []">
+                      <td><strong>{{ item.provincia }}</strong></td>
+                      <td>{{ formatNumber(item.num_clientes) }}</td>
+                      <td>{{ formatNumber(item.num_polizas) }}</td>
+                      <td class="amount">{{ formatCurrency(item.total_primas) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Tab 4: Recobros y Morosidad -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>account_balance_wallet</mat-icon>
+          <span>Recobros y Morosidad</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="financial-summary">
+            <div class="summary-card">
+              <h4>Ratio de Cobro Mensual</h4>
+              <p class="amount large">{{ getRatioCobro() }}</p>
+            </div>
+            <div class="summary-card">
+              <h4>Deuda Total</h4>
+              <p class="amount">{{ formatCurrency(collectionsPerformance?.deuda_total_vs_cartera?.deuda_total || 0) }}</p>
+            </div>
+            <div class="summary-card alert">
+              <h4>% Morosidad</h4>
+              <p class="amount">{{ getMorosidadPercentage() }}</p>
+            </div>
+            <div class="summary-card">
+              <h4>Total Cartera</h4>
+              <p class="amount">{{ formatCurrency(collectionsPerformance?.deuda_total_vs_cartera?.primas_cartera || 0) }}</p>
+            </div>
+          </div>
+
+          <div class="charts-row">
+            <mat-card class="chart-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>bar_chart</mat-icon>
+                  Morosidad por Rango de Días
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas
+                    baseChart
+                    [data]="morosidadRangoChartData"
+                    [options]="morosidadRangoChartOptions"
+                    [type]="morosidadRangoChartType">
+                  </canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div class="charts-row">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>warning</mat-icon>
+                  Clientes Morosos Recurrentes
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Nº Devoluciones</th>
+                      <th>Deuda Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of collectionsPerformance?.clientes_morosos_recurrentes || []" class="alert-row">
+                      <td><strong>{{ item.nombre_completo }}</strong></td>
+                      <td>
+                        <span class="badge danger">{{ item.num_devoluciones }}</span>
+                      </td>
+                      <td class="amount negative">{{ formatCurrency(item.deuda_total) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Tab 5: Siniestros -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>report_problem</mat-icon>
+          <span>Análisis de Siniestros</span>
+        </ng-template>
+        <div class="tab-content">
+          <div class="financial-summary">
+            <div class="summary-card">
+              <h4>Siniestros Abiertos</h4>
+              <p class="amount large">{{ formatNumber(claimsAnalysis?.siniestros_abiertos || 0) }}</p>
+            </div>
+            <div class="summary-card success">
+              <h4>Siniestros Cerrados</h4>
+              <p class="amount">{{ formatNumber(claimsAnalysis?.siniestros_cerrados || 0) }}</p>
+            </div>
+            <div class="summary-card info">
+              <h4>Tiempo Medio Resolución</h4>
+              <p class="amount">{{ formatNumber(claimsAnalysis?.tiempo_medio_resolucion_dias || 0) }} días</p>
+            </div>
+            <div class="summary-card">
+              <h4>Total Siniestros</h4>
+              <p class="amount">{{ formatNumber(totalSiniestros) }}</p>
+            </div>
+          </div>
+
+          <div class="charts-row">
+            <mat-card class="chart-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>analytics</mat-icon>
+                  Siniestralidad por Ramo (%)
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas
+                    baseChart
+                    [data]="siniestralididadRamoChartData"
+                    [options]="siniestralididadRamoChartOptions"
+                    [type]="siniestralididadRamoChartType">
+                  </canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div class="charts-row">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>table_chart</mat-icon>
+                  Detalle de Siniestralidad por Ramo
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Ramo</th>
+                      <th>Nº Pólizas</th>
+                      <th>Nº Siniestros</th>
+                      <th>Siniestralidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of claimsAnalysis?.siniestralidad_por_ramo || []">
+                      <td><strong>{{ item.ramo }}</strong></td>
+                      <td>{{ formatNumber(item.num_polizas) }}</td>
+                      <td>{{ formatNumber(item.num_siniestros) }}</td>
+                      <td>
+                        <span
+                          class="badge"
+                          [class.success]="item.siniestralidad <= 5"
+                          [class.warning]="item.siniestralidad > 5 && item.siniestralidad <= 10"
+                          [class.danger]="item.siniestralidad > 10">
+                          {{ formatPercentage(item.siniestralidad) }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Tab 6: Análisis por Ramo -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>category</mat-icon>
+          <span>Análisis por Ramo</span>
+        </ng-template>
         <div class="tab-content">
           <mat-card>
             <mat-card-header>
               <mat-card-title>
                 <mat-icon>pie_chart</mat-icon>
-                Distribución de Pólizas por Ramo
+                Distribución Completa de Pólizas por Ramo
               </mat-card-title>
             </mat-card-header>
             <mat-card-content>
               <table mat-table [dataSource]="analisisPorRamo" class="ramos-table">
-                <!-- Ramo -->
                 <ng-container matColumnDef="ramo">
                   <th mat-header-cell *matHeaderCellDef>Ramo</th>
                   <td mat-cell *matCellDef="let ramo">
@@ -131,7 +556,6 @@
                   </td>
                 </ng-container>
 
-                <!-- Número de Pólizas -->
                 <ng-container matColumnDef="num_polizas">
                   <th mat-header-cell *matHeaderCellDef>Número de Pólizas</th>
                   <td mat-cell *matCellDef="let ramo">
@@ -153,6 +577,7 @@
           </mat-card>
         </div>
       </mat-tab>
+
     </mat-tab-group>
   </div>
 </div>
