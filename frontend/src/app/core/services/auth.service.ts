@@ -66,7 +66,7 @@ export class AuthService {
       .pipe(
         catchError(err => {
           console.log('No autenticado');
-          return of({ authenticated: false });
+          return of({ authenticated: false, user: undefined } as AuthResponse);
         })
       )
       .subscribe(response => {
