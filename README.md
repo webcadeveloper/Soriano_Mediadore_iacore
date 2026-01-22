@@ -2,6 +2,16 @@
 
 Monorepo unificado del sistema de gestión de Soriano Mediadores, incluyendo frontend Angular y backend Go.
 
+## 🚀 Inicio Rápido
+
+**Para sincronizar cambios con GitHub:**
+
+```bash
+./git-sync.sh "Descripción de tus cambios"
+```
+
+Ver [GIT_WORKFLOW.md](GIT_WORKFLOW.md) para documentación completa de Git.
+
 ## Estructura del Proyecto
 
 ```
