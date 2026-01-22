@@ -4,7 +4,8 @@ import { Observable } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 /**
- * Guard para proteger rutas que requieren autenticación
+ * Guard para proteger rutas que requieren autenticacion
+ * La autenticacion se maneja via backend con Microsoft OAuth
  */
 @Injectable({
   providedIn: 'root'
@@ -17,14 +18,14 @@ export class AuthGuard {
 
   canActivate(): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     if (this.authService.isAuthenticated()) {
-      // Auto-renovar token si está próximo a expirar
-      this.authService.autoRenewToken();
       return true;
     }
 
-    // No autenticado, redirigir a login
-    console.warn('🚫 Acceso denegado - Redirigiendo a login');
-    return this.router.createUrlTree(['/login']);
+    // No autenticado - el backend redirigira a login de Microsoft
+    console.warn('Acceso denegado - Redirigiendo a login');
+    // Redirigir al login de Microsoft via backend
+    window.location.href = '/auth/login';
+    return false;
   }
 
   canActivateChild(): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
